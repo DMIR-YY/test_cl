@@ -165,7 +165,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     int loop_var;
 
-    uint32_t in_data[28*28];
+    float in_data[28*28];
     uint32_t out_data[28*28];
 
     ifstream ifs("input_3_28.txt");
@@ -390,8 +390,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         cout << endl;
     }    
     cout << "Finished fc bias bram read and write check!!!" << endl;
-    Fill_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, 28*28, in_data);
-    Read_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, 28*28, out_data);
+    Fill_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, in_data, 28*28);
+    Read_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, out_data, 28*28);
+
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
