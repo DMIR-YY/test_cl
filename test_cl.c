@@ -409,6 +409,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     cout << "IP is done at " << count << " attempts" << endl; 
 
+    cout << "Read out convolutional results" << endl;
+//TODO: read the results data out for comparison -- single layer convolution    
+
 //------------------------------------------------------------------------------------------
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
