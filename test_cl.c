@@ -401,16 +401,20 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         cout << endl;
     }    
     cout << "Finished fc bias bram read and write check!!!" << endl;
-    
+
+//----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
+    
+    XInference_net_Start(pci_bar_handle, InstancePtr);
 
-
-    printf("\n");
-    printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
+    while (!XInference_net_IsDone(pci_bar_handle, InstancePtr)) {
+        cout << "waiting IP to finish" << endl;
+    }
 
 //------------------------------------------------------------------------------------------
-
+    printf("\n");
+    printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
 
     for ( loop_var = 0; loop_var < 256; loop_var++ ) {
  
