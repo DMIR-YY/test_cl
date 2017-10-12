@@ -165,7 +165,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     int loop_var;
 
-    float in_data[28*28];
+    uint32_t in_data[28*28];
     uint32_t out_data[28*28];
 
     ifstream ifs("input_3_28.txt");
@@ -560,7 +560,7 @@ uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *Instan
     return !(data & 0x1);
 }
 
-void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRSS, uint32_t *data, int length) {
+void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
     cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
@@ -568,6 +568,8 @@ void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRSS, uint32_t *data, i
        fail_on(rc_4, out, "Unable to write to BRAM !");  
     }    
     cout << "Loaded data to BRAM !!!" << endl;
+    out:
+        cout << "failed" << endl;
 }
 void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
@@ -577,4 +579,6 @@ void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, 
         fail_on(rc_4, out, "Unable to read from the BRAM !");
     } 
     cout << "Finished reading BRAM data!!!" << endl;
+    out:
+        cout << "failed" << endl;
 }
