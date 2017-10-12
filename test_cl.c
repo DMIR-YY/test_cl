@@ -280,7 +280,13 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
     }
     cout << "Finished test bram read and write check!!!" << endl;
+    for (i = 0; i < 28; i++) {
+        for ( j = 0; j< 28; j++) {
+            out_data[i*28 + j] = 0;
+        }
+    }
 //---------------------conv weight bram ------------------------------------//
+    cout << endl;
     cout << "conv weight bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
@@ -295,8 +301,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
+    for (i = 0; i < 28; i++) {
+        for ( j = 0; j< 28; j++) {
+            out_data[i*28 + j] = 0;
+        }
+    }    
     cout << "Finished conv weight bram read and write check!!!" << endl;
 //----------------------conv bias bram -------------------------------------//    
+    cout << endl;
     cout << "conv bias bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
@@ -311,8 +323,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
+    for (i = 0; i < 28; i++) {
+        for ( j = 0; j< 28; j++) {
+            out_data[i*28 + j] = 0;
+        }
+    }    
     cout << "Finished conv bias bram read and write check!!!" << endl;
 //-----------------------fc weight bram -----------------------------------//
+    cout << endl;
     cout << "fc weight bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
@@ -327,8 +345,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
+    for (i = 0; i < 28; i++) {
+        for ( j = 0; j< 28; j++) {
+            out_data[i*28 + j] = 0;
+        }
+    }    
     cout << "Finished fc weight bram read and write check!!!" << endl;
 //----------------------fc bias bram ---------------------------------------//
+    cout << endl;
     cout << "fc bias bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
@@ -343,6 +367,12 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
+    for (i = 0; i < 28; i++) {
+        for ( j = 0; j< 28; j++) {
+            cout << out_data[i*28 + j] << "  ";
+        }
+        cout << endl;
+    }    
     cout << "Finished fc bias bram read and write check!!!" << endl;
     
 /*
