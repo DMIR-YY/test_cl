@@ -165,7 +165,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     int loop_var;
 
-    float in_data[28*28];
+    uint32_t in_data[28*28];
     uint32_t out_data[28*28];
 
     ifstream ifs("input_3_28.txt");
