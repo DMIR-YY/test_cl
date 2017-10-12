@@ -570,20 +570,20 @@ void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, 
     cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), data[loop_var]);
-       fail_on(rc_4, out, "Unable to write to BRAM !");  
+       fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
     }    
     cout << "Loaded data to BRAM !!!" << endl;
-    out:
-        cout << "failed" << endl;
+out_fill:
+        cout << "failed writing" << endl;
 }
 void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
     cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), &data[loop_var]);
-        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        fail_on(rc_4, out_read, "Unable to read from the BRAM !");
     } 
     cout << "Finished reading BRAM data!!!" << endl;
-    out:
-        cout << "failed" << endl;
+out_read:
+        cout << "failed reading" << endl;
 }
