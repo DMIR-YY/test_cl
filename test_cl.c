@@ -109,7 +109,7 @@ int vled_example(int slot);
 int initialize_log(char* log_name);
 int check_afi_ready(int slot);
 
-void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset, Data);
+void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset, uint32_t Data);
 uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset);
 int XInference_net_Initialize(pci_bar_handle_t pci_bar, XInference_net *InstancePtr, const char* InstanceName);
 int XInference_net_Release(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
@@ -523,14 +523,18 @@ void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uin
     int rc;
     rc = fpga_pci_poke(pci_bar, BaseAddress + RegOffset, Data);
     fail_on(rc, out, "Unable to read from IP !");  
+out:
+    return 0;
 }
 
 uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset) {
     uint32_t data;
     int rc;
     rc = fpga_pci_peek(pci_bar, (BaseAddress + RegOffset), &data);
-    fail_on(rc_4, out, "Unable to read from the BRAM !");
+    fail_on(rc, out, "Unable to read from the BRAM !");
     return data;
+out:
+    return 0;
 }
 
 // int XInference_net_Initialize(XInference_net *InstancePtr, const char* InstanceName);
