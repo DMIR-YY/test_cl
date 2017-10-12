@@ -72,6 +72,19 @@
 //bram_ctrl_15
 #define BUF_OUT_1 UINT64_C(0x00CA000000)
 
+// M_AXI_BAR1 connected to inference control port
+#define XINFERENCE_IP_CRTL_BUS_ADDR UINT64_C(0x010000)
+
+#define XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL UINT64_C(0x0)
+#define XINFERENCE_NET_CRTL_BUS_ADDR_GIE UINT64_C(0x4)
+#define XINFERENCE_NET_CRTL_BUS_ADDR_IER UINT64_C(0x8)
+#define XINFERENCE_NET_CRTL_BUS_ADDR_ISR UINT64_C(0xc)
+
+typedef struct {
+    uint32_t ctrl_bus_baseaddress;
+    uint32_t IsReady;
+} XInference_net;
+
 //BRAM INFERENCE_IP address offset
 
 using namespace std;
@@ -95,6 +108,16 @@ int vled_example(int slot);
 /* Declating auxilary house keeping functions */
 int initialize_log(char* log_name);
 int check_afi_ready(int slot);
+
+void XInference_net_WriteReg(pci_bar_handle_t pci_bar, UINT64_C BaseAddress, UINT64_C RegOffset, Data);
+uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, UINT64_C BaseAddress, UINT64_C RegOffset);
+int XInference_net_Initialize(pci_bar_handle_t pci_bar, XInference_net *InstancePtr, const char* InstanceName);
+int XInference_net_Release(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
+
+void XInference_net_Start(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
+uint32_t XInference_net_IsDone(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
+uint32_t XInference_net_IsIdle(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
+uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
 
 
 int main(int argc, char **argv) {
@@ -148,6 +171,10 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     int index = 0;
     int i, j;
+    XInference_net *InstancePtr;
+    InstancePtr->ctrl_bus_baseaddress = XINFERENCE_IP_CRTL_BUS_ADDR;
+    InstancePtr->IsReady = 0x01;
+    uint32_t ip_status;
     /* pci_bar_handle_t is a handler for an address space exposed by one PCI BAR on one of the PCI PFs of the FPGA */
 
     pci_bar_handle_t pci_bar_handle = PCI_BAR_HANDLE_INIT;
@@ -375,15 +402,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }    
     cout << "Finished fc bias bram read and write check!!!" << endl;
     
-/*
-    cout<< "Print BRAM data out -------" << endl;
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            cout << float(out_data[i*28 + j]) << "  ";
-        }
-        cout << endl;
-    }
-*/
+    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
+    cout << "Status feedback from inference ip is : " << ip_status << endl;
+
 
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
@@ -495,4 +516,46 @@ int check_afi_ready(int slot_id) {
 
 out:
     return 1;
+}
+
+
+void XInference_net_WriteReg(pci_bar_handle_t pci_bar, UINT64_C BaseAddress, UINT64_C RegOffset, uint32_t Data) {
+    int rc;
+    rc = fpga_pci_poke(pci_bar, BaseAddress + RegOffset, Data);
+    fail_on(rc, out, "Unable to read from IP !");  
+}
+
+uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, UINT64_C BaseAddress, UINT64_C RegOffset) {
+    uint32_t data;
+    int rc;
+    rc = fpga_pci_peek(pci_bar, (BaseAddress + RegOffset), &data);
+    fail_on(rc_4, out, "Unable to read from the BRAM !");
+    return data;
+}
+
+// int XInference_net_Initialize(XInference_net *InstancePtr, const char* InstanceName);
+// int XInference_net_Release(XInference_net *InstancePtr);
+
+void XInference_net_Start(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
+    uint32_t data;
+    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL) & 0x80;
+    XInference_net_WriteReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL, data | 0x01);
+}
+
+uint32_t XInference_net_IsDone(pci_bar_handle_t pci_bar, XInference_net *InstancePtr){
+    uint32_t data;
+    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
+    return (data >> 1) & 0x01;
+}
+
+uint32_t XInference_net_IsIdle(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
+    uint32_t data;
+    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
+    return (data >> 2) & 0x01;
+}
+
+uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
+    uint32_t data;
+    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
+    return !(data & 0x1);
 }
