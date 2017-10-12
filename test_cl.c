@@ -524,7 +524,7 @@ void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uin
     rc = fpga_pci_poke(pci_bar, BaseAddress + RegOffset, Data);
     fail_on(rc, out, "Unable to read from IP !");  
 out:
-    return 0;
+    cout << "Function fail!!" << endl;;
 }
 
 uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset) {
