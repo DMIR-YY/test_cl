@@ -52,8 +52,27 @@
 #define HELLO_WORLD_REG_ADDR_DST_ADDR UINT64_C(0x20)
 #define HELLO_WORLD_REG_ADDR_BYTES UINT64_C(0x28)
 
+
+//BRAM PCIS address offset
+// test bram
 #define BRAM_BASE_ADDR UINT64_C(0xC0000000)
 #define BRAM_MSB_ADDR UINT64_C(0xC0000FFF)
+//bram_ctrl_9
+#define CONV_W_BRAM_PCIS UINT64_C(0x00C0002000)
+//bram_ctrl_10
+#define CONV_B_BRAM_PCIS UINT64_C(0x00C0000000)
+//bram_ctrl_11
+#define FC_W_BRAM_PCIS UINT64_C(0x00C2000000)
+//bram_ctrl_12
+#define FC_B_BRAM_PCIS UINT64_C(0x00C4000000)
+//bram_ctrl_13
+#define FC_OUT UINT64_C(0x00C6000000)
+//bram_ctrl_14
+#define BUF_OUT_0 UINT64_C(0x00C8000000)
+//bram_ctrl_15
+#define BUF_OUT_1 UINT64_C(0x00CA000000)
+
+//BRAM INFERENCE_IP address offset
 
 using namespace std;
 
@@ -100,12 +119,8 @@ int main(int argc, char **argv) {
     printf("===== AXI CDMA Example =====\n");	
     rc = peek_poke_example(slot_id, FPGA_APP_PF, APP_PF_BAR1);
     fail_on(rc, out, "peek-poke example failed");
-
-
-
   
-    return rc;
-    
+    return rc; 
    
 out:
     return 1;
@@ -121,12 +136,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     int rc_0;
     int rc_4;
     int rc_sda;
-
     uint32_t value;
 
-
     int loop_var;
-
 
     float in_data[28*28];
     uint32_t out_data[28*28];
@@ -143,7 +155,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     pci_bar_handle_t pci_bar_handle_4 = PCI_BAR_HANDLE_INIT;
 
     pci_bar_handle_t pci_bar_handle_sda = PCI_BAR_HANDLE_INIT;
-
 
     /* attach to the fpga, with a pci_bar_handle out param
      * To attach to multiple slots or BARs, call this function multiple times,
@@ -162,8 +173,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     rc_sda = fpga_pci_attach(slot_id, FPGA_MGMT_PF, MGMT_PF_BAR4, 0, &pci_bar_handle_sda);
     fail_on(rc_sda, out, "Unable to attach to the AFI on slot id %d", slot_id);
-
-
 
 
     printf("Checking DDR4_A/B/D and DDR4_C(SH) Calibration with SDA-AXI GPIO\n");
@@ -186,8 +195,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     value = 0x0000AAAA;
     rc_0 = fpga_pci_poke(pci_bar_handle_0, HELLO_WORLD_REG_ADDR, value);
     fail_on(rc_0, out, "Unable to write to the fpga !");
-
-
 
 
     printf("\n");
@@ -239,6 +246,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     printf("CDMA Transfer Complete!\n");
     printf("AXI CDMA Status Register Value: 0x%x\n", value);
 
+
 //--------------------------BRAM data initialization---------------------------------------
     if(!ifs) {
        printf("input data not found!!\n");
@@ -256,23 +264,88 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         cout << endl;
     }
 
+//----------------------test bram -----------------------------------------//
+    cout << "Test bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (BRAM_BASE_ADDR+loop_var*4), in_data[loop_var]);
        fail_on(rc_4, out, "Unable to write to BRAM !");  
-    }
-    
-    printf("finished writing to BRAM!!! \n");
-//    usleep(1000000);
+    }    
+    printf("finished writing to test BRAM!!! \n");
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar_handle_4, (BRAM_BASE_ADDR + loop_var*4), &out_data[loop_var]);
         fail_on(rc_4, out, "Unable to read from the BRAM !");
-//        if(value != 0x1)
-//        {
-//          printf("%d Data mismatch! read_data= 0x%x, write_data= 0x%x\n", 1, value, 1);
-//          printf("Data location= %d, read_data= 0x%x\n", loop_var, value);
-//        }
+        if(out_data[loop_var] != in_data[loop_var])
+       {
+          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        }
     }
-
+    cout << "Finished test bram read and write check!!!" << endl;
+//---------------------conv weight bram ------------------------------------//
+    cout << "conv weight bram data write and read" << endl;
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+       fail_on(rc_4, out, "Unable to write to BRAM !");  
+    }    
+    printf("finished writing to conv weight BRAM!!! \n");
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        if(out_data[loop_var] != in_data[loop_var])
+       {
+          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        }
+    }
+    cout << "Finished conv weight bram read and write check!!!" << endl;
+//----------------------conv bias bram -------------------------------------//    
+    cout << "conv bias bram data write and read" << endl;
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+       fail_on(rc_4, out, "Unable to write to BRAM !");  
+    }    
+    printf("finished writing to test BRAM!!! \n");
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (BRAM_BASE_ADDR + loop_var*4), &out_data[loop_var]);
+        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        if(out_data[loop_var] != in_data[loop_var])
+       {
+          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        }
+    }
+    cout << "Finished conv bias bram read and write check!!!" << endl;
+//-----------------------fc weight bram -----------------------------------//
+    cout << "fc weight bram data write and read" << endl;
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+       rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+       fail_on(rc_4, out, "Unable to write to BRAM !");  
+    }    
+    printf("finished writing to fc weight BRAM!!! \n");
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (FC_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        if(out_data[loop_var] != in_data[loop_var])
+       {
+          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        }
+    }
+    cout << "Finished fc weight bram read and write check!!!" << endl;
+//----------------------fc bias bram ---------------------------------------//
+    cout << "fc bias bram data write and read" << endl;
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+       rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+       fail_on(rc_4, out, "Unable to write to BRAM !");  
+    }    
+    printf("finished writing to fc bias BRAM!!! \n");
+    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (FC_B_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        if(out_data[loop_var] != in_data[loop_var])
+       {
+          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        }
+    }
+    cout << "Finished fc bias bram read and write check!!!" << endl;
+    
+/*
     cout<< "Print BRAM data out -------" << endl;
     for (i = 0; i < 28; i++) {
         for ( j = 0; j< 28; j++) {
@@ -280,7 +353,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
         cout << endl;
     }
-
+*/
 
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
