@@ -427,7 +427,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     cout << "Read out convolutional results" << endl;
     Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 28*28);
 
-    for(i = 0; i < 28; i++ ) {
+    for(i = 0; i < 6*28; i++ ) {
         for(j = 0; j < 28; j++) {
 //            for(k = 0; k < 28; k++) {
                 cout << out_data[i*28 + j] << "  ";
@@ -436,7 +436,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
 	cout << endl;
     }
-//    cout << endl;
+   cout << endl;
 
 //------------------------------------------------------------------------------------------
     printf("\n");
@@ -600,11 +600,11 @@ void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, 
     printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), data[loop_var]);
-       fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
+    //    fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
     }    
     cout << "Loaded data to BRAM !!!" << endl;
-out_fill:
-        cout << "failed writing" << endl;
+// out_fill:
+        // cout << "failed writing" << endl;
 }
 void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
@@ -612,9 +612,9 @@ void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, 
     printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), &data[loop_var]);
-        fail_on(rc_4, out_read, "Unable to read from the BRAM !");
+        // fail_on(rc_4, out_read, "Unable to read from the BRAM !");
     } 
     cout << "Finished reading BRAM data!!!" << endl;
-out_read:
-        cout << "failed reading" << endl;
+// out_read:
+        // cout << "failed reading" << endl;
 }
