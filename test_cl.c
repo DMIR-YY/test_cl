@@ -187,6 +187,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     pci_bar_handle_t pci_bar_handle_sda = PCI_BAR_HANDLE_INIT;
 
+    cout << "test point 1" << endl;
+
     /* attach to the fpga, with a pci_bar_handle out param
      * To attach to multiple slots or BARs, call this function multiple times,
      * saving the pci_bar_handle to specify which address space to interact with in
