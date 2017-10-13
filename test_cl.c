@@ -402,7 +402,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
 //----------------------input data buffer load------------------------------//
     Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 28*28);
-
+    Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_res, 28*28);
+    for (i = 0; i < 28; i++) {
+        for (j = 0; j < 28; j++) {
+            cout << out_res[i*28 + j] << "  ";
+        }
+        cout << endl;
+    }
+    cout << "Finished data buffer load ......" << endl;
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
@@ -587,7 +594,8 @@ uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *Instan
 
 void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
-    cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
+    // cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
+    printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), data[loop_var]);
        fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
@@ -598,7 +606,8 @@ out_fill:
 }
 void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
     int rc_4, loop_var;
-    cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
+    // cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
+    printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), &data[loop_var]);
         fail_on(rc_4, out_read, "Unable to read from the BRAM !");
