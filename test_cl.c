@@ -411,6 +411,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     cout << "IP is done at " << count << " attempts" << endl; 
 
 //TODO: read the results data out for comparison -- single layer convolution    
+/*
     cout << "Read out convolutional results" << endl;
     Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_res, 6*28*28);
     for(i = 0; i < 6; i++ ) {
@@ -424,6 +425,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 	cout << endl;
     }
     cout << endl;
+*/
 //------------------------------------------------------------------------------------------
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
