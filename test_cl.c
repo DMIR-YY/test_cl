@@ -315,92 +315,82 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     cout << "Finished test bram read and write check!!!" << endl;
 //---------------------conv weight bram ------------------------------------//
-    cout << endl;
-    cout << "conv weight bram data write and read" << endl;
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), 0x01);
-       fail_on(rc_4, out, "Unable to write to BRAM !");  
-    }    
-    printf("finished writing to conv weight BRAM!!! \n");
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-        rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
-        fail_on(rc_4, out, "Unable to read from the BRAM !");
-        if(out_data[loop_var] != 0x01)
-       {
-          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
-        }
-    }
-    cout << "conv weight kernel data -----------------" << endl;
-    for (i = 0; i < 6; i++) {
-        for ( j = 0; j< 5; j++) {
-            for (k = 0; k < 5; k++) {
-                cout << out_data[i * 25 + j*5 + k] << "  ";
-            }
-            cout << endl;
-        }
-        cout << endl; cout << endl;
-    }
-    cout << "Finished conv weight bram read and write check!!!" << endl;
-//----------------------conv bias bram -------------------------------------//    
-    cout << endl;
-    cout << "conv bias bram data write and read" << endl;
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
-       fail_on(rc_4, out, "Unable to write to BRAM !");  
-    }    
-    printf("finished writing to test BRAM!!! \n");
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-        rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_B_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
-        fail_on(rc_4, out, "Unable to read from the BRAM !");
-        if(out_data[loop_var] != in_data[loop_var])
-       {
-          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
-        }
-    }
-    cout << "conv bias kernel data -------------------" << endl;
-    for (i = 0; i < 6; i++) {
-//        for ( j = 0; j< 28; j++) {
-            out_data[i] = 0;
+    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, in_data, 28*28);
+    Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, out_data, 28*28);
+//    cout << endl;
+//    cout << "conv weight bram data write and read" << endl;
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), 0x01);
+//       fail_on(rc_4, out, "Unable to write to BRAM !");
+//    }
+//    printf("finished writing to conv weight BRAM!!! \n");
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//        rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+//        fail_on(rc_4, out, "Unable to read from the BRAM !");
+//        if(out_data[loop_var] != 0x01)
+//       {
+//          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
 //        }
-    }    
+//    }
+    cout << "Finished conv weight bram read and write check!!!" << endl;
+//----------------------conv bias bram -------------------------------------//
+    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, in_data, 28*28);
+//    Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, out_data, 28*28);
+//    cout << endl;
+//    cout << "conv bias bram data write and read" << endl;
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_B_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+//       fail_on(rc_4, out, "Unable to write to BRAM !");
+//    }
+//    printf("finished writing to test BRAM!!! \n");
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//        rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_B_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+//        fail_on(rc_4, out, "Unable to read from the BRAM !");
+//        if(out_data[loop_var] != in_data[loop_var])
+//       {
+//          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+//        }
+//    }
+//    cout << "conv bias kernel data -------------------" << endl;
+//    for (i = 0; i < 6; i++) {
+////        for ( j = 0; j< 28; j++) {
+//            out_data[i] = 0;
+////        }
+//    }
     cout << "Finished conv bias bram read and write check!!!" << endl;
 //-----------------------fc weight bram -----------------------------------//
-    cout << endl;
-    cout << "fc weight bram data write and read" << endl;
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
-       fail_on(rc_4, out, "Unable to write to BRAM !");  
-    }    
-    printf("finished writing to fc weight BRAM!!! \n");
-    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-        rc_4 = fpga_pci_peek(pci_bar_handle_4, (FC_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
-        fail_on(rc_4, out, "Unable to read from the BRAM !");
-        if(out_data[loop_var] != in_data[loop_var])
-       {
-          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
-        }
-    }
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            out_data[i*28 + j] = 0;
-        }
-    }    
+    Fill_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, in_data, 28*28);
+//    Read_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, out_data, 28*28);
+//    cout << endl;
+//    cout << "fc weight bram data write and read" << endl;
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//       rc_4 = fpga_pci_poke(pci_bar_handle_4, (FC_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+//       fail_on(rc_4, out, "Unable to write to BRAM !");
+//    }
+//    printf("finished writing to fc weight BRAM!!! \n");
+//    for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
+//        rc_4 = fpga_pci_peek(pci_bar_handle_4, (FC_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
+//        fail_on(rc_4, out, "Unable to read from the BRAM !");
+//        if(out_data[loop_var] != in_data[loop_var])
+//       {
+//          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+//        }
+//    }
+//    for (i = 0; i < 28; i++) {
+//        for ( j = 0; j< 28; j++) {
+//            out_data[i*28 + j] = 0;
+//        }
+//    }
     cout << "Finished fc weight bram read and write check!!!" << endl;
 //----------------------fc bias bram ---------------------------------------//
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            cout << out_data[i*28 + j] << "  ";
-        }
-        cout << endl;
-    }    
     Fill_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, in_data, 28*28);
     Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_data, 28*28);
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            cout << out_data[i*28 + j] << "  ";
-        }
-        cout << endl;
-    }
+//    for (i = 0; i < 28; i++) {
+//        for ( j = 0; j< 28; j++) {
+//            cout << out_data[i*28 + j] << "  ";
+//        }
+//        cout << endl;
+//    }
     cout << "Finished fc bias bram read and write check!!!" << endl;
 
 //----------------------input data buffer load------------------------------//
