@@ -409,7 +409,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
         cout << endl;
     }
-    cout << "Finished data buffer load ......" << endl;
+    cout << "Finished input data buffer load ......" << endl;
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
