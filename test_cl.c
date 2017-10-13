@@ -314,11 +314,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
     }
     cout << "Finished test bram read and write check!!!" << endl;
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            out_data[i*28 + j] = 0;
-        }
-    }
 //---------------------conv weight bram ------------------------------------//
     cout << endl;
     cout << "conv weight bram data write and read" << endl;
@@ -335,11 +330,16 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            out_data[i*28 + j] = 0;
+    cout << "conv weight kernel data -----------------" << endl;
+    for (i = 0; i < 6; i++) {
+        for ( j = 0; j< 5; j++) {
+            for (k = 0; k < 5; k++) {
+                cout << out_data[i * 25 + j*5 + k] << "  ";
+            }
+            cout << endl;
         }
-    }    
+        cout << endl; cout << endl;
+    }
     cout << "Finished conv weight bram read and write check!!!" << endl;
 //----------------------conv bias bram -------------------------------------//    
     cout << endl;
@@ -357,10 +357,11 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            out_data[i*28 + j] = 0;
-        }
+    cout << "conv bias kernel data -------------------" << endl;
+    for (i = 0; i < 6; i++) {
+//        for ( j = 0; j< 28; j++) {
+            out_data[i] = 0;
+//        }
     }    
     cout << "Finished conv bias bram read and write check!!!" << endl;
 //-----------------------fc weight bram -----------------------------------//
@@ -404,13 +405,13 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
 //----------------------input data buffer load------------------------------//
     Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 28*28);
-    Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_res, 28*28);
-    for (i = 0; i < 28; i++) {
-        for (j = 0; j < 28; j++) {
-            cout << out_res[i*28 + j] << "  ";
-        }
-        cout << endl;
-    }
+//    Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_res, 28*28);
+//    for (i = 0; i < 28; i++) {
+//        for (j = 0; j < 28; j++) {
+//            cout << out_res[i*28 + j] << "  ";
+//        }
+//        cout << endl;
+//    }
     cout << "Finished input data buffer load ......" << endl;
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
@@ -426,7 +427,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 //TODO: read the results data out for comparison -- single layer convolution    
     cout << "Read out convolutional results" << endl;
     Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 28*28);
-
     for(i = 0; i < 6*28; i++ ) {
         for(j = 0; j < 28; j++) {
 //            for(k = 0; k < 28; k++) {
