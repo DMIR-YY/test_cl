@@ -321,14 +321,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     cout << endl;
     cout << "conv weight bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), in_data[loop_var]);
+       rc_4 = fpga_pci_poke(pci_bar_handle_4, (CONV_W_BRAM_PCIS+loop_var*4), 0x01);
        fail_on(rc_4, out, "Unable to write to BRAM !");  
     }    
     printf("finished writing to conv weight BRAM!!! \n");
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar_handle_4, (CONV_W_BRAM_PCIS + loop_var*4), &out_data[loop_var]);
         fail_on(rc_4, out, "Unable to read from the BRAM !");
-        if(out_data[loop_var] != in_data[loop_var])
+        if(out_data[loop_var] != 0x01)
        {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
@@ -400,6 +400,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     cout << "Finished fc bias bram read and write check!!!" << endl;
 
+//----------------------input data buffer load------------------------------//
+    Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 28*28);
+
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
@@ -413,18 +416,18 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
 //TODO: read the results data out for comparison -- single layer convolution    
     cout << "Read out convolutional results" << endl;
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_res, 28*28);
-    for(i = 0; i < 1; i++ ) {
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 28*28);
+
+    for(i = 0; i < 28; i++ ) {
         for(j = 0; j < 28; j++) {
-            for(k = 0; k < 28; k++) {
-                cout << float(out_res[i*28*28 + j*28 + k]) << "  ";
-            }
-            cout << endl;
+//            for(k = 0; k < 28; k++) {
+                cout << out_data[i*28 + j] << "  ";
+//            }
+//            cout << endl;
         }
 	cout << endl;
-	cout << endl;
     }
-    cout << endl;
+//    cout << endl;
 
 //------------------------------------------------------------------------------------------
     printf("\n");
