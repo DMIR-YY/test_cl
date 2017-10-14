@@ -294,17 +294,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         index++;
     }
     ifs.close();
-
-    for (i = 0; i < 28; i++) {
-        for ( j = 0; j< 28; j++) {
-            cout << in_data[i*28 + j] << "  ";
-        }
-        cout << endl;
-    }
-//----------------------input weight data initialization ------------------//
-//----------------------input bias data initialization---------------------//
 //----------------------test bram -----------------------------------------//
-    cout << "Test bram data write and read" << endl;
+//    cout << "Test bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar_handle_4, (BRAM_BASE_ADDR+loop_var*4), in_data[loop_var]);
        fail_on(rc_4, out, "Unable to write to BRAM !");  
@@ -318,7 +309,10 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
           printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
         }
     }
-    cout << "Finished test bram read and write check!!!" << endl;
+//    cout << "Finished test bram read and write check!!!" << endl;
+//TODO: weight and bias data initialization
+//----------------------input weight data initialization ------------------//
+//----------------------input bias data initialization---------------------//
 //---------------------conv weight bram ------------------------------------//
     Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, in_data, 28*28);
     Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, out_data, 28*28);
@@ -342,7 +336,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 //----------------------inference net ip status check -----------------------//    
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
-
     ip_start = clock();
     XInference_net_Start(pci_bar_handle, InstancePtr);
 
@@ -353,38 +346,30 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     totaltime = (double)(ip_finish - ip_start) / CLOCKS_PER_SEC;
     cout << "Convolution layer processing time = " << totaltime << "  s" << endl;
     cout << "IP is done at " << count << " attempts" << endl; 
-
+//---------------Read convolution results out from output_buffer_1------------//
 //TODO: read the results data out for comparison -- single layer convolution    
     cout << "Read out convolutional results" << endl;
     Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 28*28);
     for(i = 0; i < 6*28; i++ ) {
         for(j = 0; j < 28; j++) {
-//            for(k = 0; k < 28; k++) {
-                cout << out_data[i*28 + j] << "  ";
-//            }
-//            cout << endl;
+            cout << out_data[i*28 + j] << "  ";
         }
 	cout << endl;
     }
    cout << endl;
-
 //------------------------------------------------------------------------------------------
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
 
     for ( loop_var = 0; loop_var < 256; loop_var++ ) {
- 
-       rc_4 = fpga_pci_peek(pci_bar_handle_4, (DDR_B_ADDR + loop_var*4), &value);
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (DDR_B_ADDR + loop_var*4), &value);
        fail_on(rc_4, out, "Unable to read read from the fpga !");
        //printf("register: 0x%x\n", value);
-
        if (value != loop_var)
     	{
           printf("Data mismatch!");
     	}
-            
     }
-
     printf("\n");
     printf("CDMA Transfer Successful!\n");
 
