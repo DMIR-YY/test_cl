@@ -21,7 +21,7 @@ CFLAGS = -DCONFIG_LOGLEVEL=4 -std=c++0x -g -Wall $(INCLUDES)
 
 LDLIBS = -lfpga_mgmt -lrt -lpthread
 
-SRC = test_cl.c
+SRC = test_cl.cpp
 OBJ = $(SRC:.c=.o)
 BIN = test_cl
 
@@ -31,7 +31,7 @@ $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 clean:
-	rm -f *.o $(BIN)
+	rm -f *.o ./netOutput/in_data.txt ./netOutput/out_data.txt ./netOutput/weight_data.txt ./netOutput/params.txt $(BIN)
 
 check_env:
 ifndef SDK_DIR

@@ -27,10 +27,19 @@
 #include <fstream>
 //#include <cstdlib>
 #include <time.h>
+#include <sys/time.h>
 
 #include <fpga_pci.h>
 #include <fpga_mgmt.h>
 #include <utils/lcd.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "./inference_net/stb_image.h"
+#include "./inference_net/weight_bias_one_dim.h"
+#include "./inference_net/config.h"
+#include "./inference_net/inference_func.h"
+
+using namespace std;
 
 /* Constants determined by the CL */
 /* a set of register offsets; this CL has only one */
@@ -55,23 +64,19 @@
 
 
 //BRAM PCIS address offset
-// test bram
-#define BRAM_BASE_ADDR UINT64_C(0xC0000000)
-#define BRAM_MSB_ADDR UINT64_C(0xC0000FFF)
-//bram_ctrl_9
-#define CONV_W_BRAM_PCIS UINT64_C(0x00C0002000)
-//bram_ctrl_10
-#define CONV_B_BRAM_PCIS UINT64_C(0x00C0000000)
-//bram_ctrl_11
-#define FC_W_BRAM_PCIS UINT64_C(0x00C2000000)
-//bram_ctrl_12
-#define FC_B_BRAM_PCIS UINT64_C(0x00C4000000)
-//bram_ctrl_13
-#define FC_OUT UINT64_C(0x00C6000000)
-//bram_ctrl_14
-#define BUF_OUT_0 UINT64_C(0x00C8000000)
-//bram_ctrl_15
-#define BUF_OUT_1 UINT64_C(0x00CA000000)
+// conv weight m_axi port -- axi_bram_ctrl_0 (32k)
+#define CONV_W_BRAM_PCIS UINT64_C(0x00C0000000)
+// conv bias m_axi port -- axi_bram_ctrl_1 (8k)
+#define CONV_B_BRAM_PCIS UINT64_C(0x00C2001000)
+// temp out 0 1 portA -- axi_bram_ctrl_2 (32k)
+#define BUF_OUT_0 UINT64_C(0x00C4000000)
+// temp out 1 1 portA -- axi_bram_ctrl_3 (32k)
+#define BUF_OUT_1 UINT64_C(0x00C6000000)
+// parameter bram definition -- axi_bram_ctrl_4 (4k)
+#define ACC_PARAMS_0 UINT64_C(0x00C8000000)
+// parameter bram definition -- axi_bram_ctrl_5 (4k)
+#define ACC_PARAMS_1 UINT64_C(0x00CA000000)
+
 
 // M_AXI_BAR1 connected to inference control port
 #define XINFERENCE_IP_CRTL_BUS_ADDR UINT64_C(0x010000)
@@ -81,47 +86,9 @@
 #define XINFERENCE_NET_CRTL_BUS_ADDR_IER UINT64_C(0x8)
 #define XINFERENCE_NET_CRTL_BUS_ADDR_ISR UINT64_C(0xc)
 
-typedef struct {
-    uint32_t ctrl_bus_baseaddress;
-    uint32_t IsReady;
-} XInference_net;
-
-//BRAM INFERENCE_IP address offset
-
-using namespace std;
-
-/*
- * pci_vendor_id and pci_device_id values below are Amazon's and avaliable to use for a given FPGA slot. 
- * Users may replace these with their own if allocated to them by PCI SIG
- */
-static uint16_t pci_vendor_id = 0x1D0F; /* Amazon PCI Vendor ID */
-static uint16_t pci_device_id = 0xF000; /* PCI Device ID preassigned by Amazon for F1 applications */
-
 
 /* use the stdout logger for printing debug information  */
 const struct logger *logger = &logger_stdout;
-
-/* Declaring the local functions */
-
-int peek_poke_example(int slot, int pf_id, int bar_id);
-int vled_example(int slot);
-
-/* Declating auxilary house keeping functions */
-int initialize_log(char* log_name);
-int check_afi_ready(int slot);
-
-void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset, uint32_t Data);
-uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset);
-int XInference_net_Initialize(pci_bar_handle_t pci_bar, XInference_net *InstancePtr, const char* InstanceName);
-int XInference_net_Release(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
-
-void XInference_net_Start(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
-uint32_t XInference_net_IsDone(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
-uint32_t XInference_net_IsIdle(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
-uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *InstancePtr);
-
-void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRSS, uint32_t *data, int length);
-void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRSS, uint32_t *data, int length);
 
 int main(int argc, char **argv) {
     int rc;
@@ -132,14 +99,12 @@ int main(int argc, char **argv) {
     fail_on(rc, out, "Unable to initialize the fpga_pci library");
 
     /* This demo works with single FPGA slot, we pick slot #0 as it works for both f1.2xl and f1.16xl */
-
     slot_id = 0;
 
     rc = check_afi_ready(slot_id);
     fail_on(rc, out, "AFI not ready");
     
     /* Accessing the CL registers via AppPF BAR0, which maps to sh_cl_ocl_ AXI-Lite bus between AWS FPGA Shell and the CL*/
-
     printf("\n");
 
     printf("===== AXI CDMA Example =====\n");	
@@ -151,8 +116,6 @@ int main(int argc, char **argv) {
 out:
     return 1;
 }
-
-
 
 /*
  * An example to attach to an arbitrary slot, pf, and bar with register access.
@@ -166,20 +129,45 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     int loop_var;
 
-    uint32_t in_data[28*28];
-    uint32_t out_data[28*28];
-    uint32_t out_res[6*28*28];
+    data_type in_data[28*28];
+    data_type  out_data[28*28];
+    uint32_t   out_temp[28*28];
+    data_type out_res[6*28*28];
+    data_type_w conv_weight[6*5*5];
+    data_type_w conv_bias[1024];
+    int acc_param[16] = {1, 5, 1, 28, 28, 28, 28, 1, 2, 1, 0, 1024, 0, 0, 0, 1};
+    int acc_param_test_0[16] = {0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int acc_param_test_1[16] = {0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-    ifstream ifs("input_3_28.txt");
+
+    int w;
+    int h;
+    int channels;
+    int size;
+    const unsigned char * data ;
+    const unsigned char * image_orig ;
+    int in_number_conv = 0;
+    int in_number_fc = 0;
+    int in_number_pooling = 0;
+    int conv_weight_num=0;
+    int conv_bias_num=0;
+
+    string image_dir = "./netInput/3.bmp";
+    const char* weight_src = "./netInput/net_weights.txt";
+    std::ofstream indata;
+    std::ofstream outdata;
+    std::ofstream weightdata;
+    std::ofstream test_output;
+    ifstream ifs("./test_data.txt");
     string str;
 
-    int index = 0;
-    int i, j, k;
+    //int i,j,k;
     int count = 0;
+    int num = 0;
 
     //time mreasurement variable define
-    clock_t ip_start, ip_finish;
-    double totaltime;
+    struct timeval start,end;
+    unsigned long diff;
     XInference_net *InstancePtr;
     InstancePtr->ctrl_bus_baseaddress = XINFERENCE_IP_CRTL_BUS_ADDR;
     InstancePtr->IsReady = 0x01;
@@ -286,77 +274,225 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
 
 //--------------------------input image data initialization----------------//
-    if(!ifs) {
-       printf("input data not found!!\n");
+    data = loadfile(image_dir, size);
+    image_orig = stbi_load_from_memory(data, size, &w, &h, &channels, 1);
+    for (int j = 0; j < 28*28; j++) {
+        in_data[j] = (data_type)image_orig[j];
     }
-    while (ifs >> str) {
-        in_data[index] = uint32_t(atof(str.c_str()));
-        index++;
+    cout << endl;
+    indata.open("./netOutput/in_data.txt", ios::app);
+    for (int i = 0; i < acc_param[0]; i++) {
+        for (int j = 0; j < acc_param[3]; j++) {
+            for (int k = 0; k < acc_param[4]; k++) {
+                indata << in_data[i*acc_param[3]*acc_param[4] + j*acc_param[4] + k] << " ";
+            }
+            indata << endl;
+        }
+        indata << endl;
     }
-    ifs.close();
+    indata << endl;
+    indata.close();
+    cout << endl;
 //----------------------test bram -----------------------------------------//
-//    cout << "Test bram data write and read" << endl;
+/*
+    cout << "Test bram data write and read" << endl;
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar_handle_4, (BRAM_BASE_ADDR+loop_var*4), in_data[loop_var]);
-       fail_on(rc_4, out, "Unable to write to BRAM !");  
+//        rc_4 = fpga_pci_poke(pci_bar_handle_4, (TEST_BRAM_0_ADDR+loop_var*4), (uint32_t)in_data[loop_var]);
+        rc_4 = fpga_pci_poke(pci_bar_handle_4, (TEST_BRAM_0_ADDR+loop_var*4), *(uint32_t*)&in_data[loop_var]);
+        fail_on(rc_4, out, "Unable to write to BRAM !");  
     }    
     printf("finished writing to test BRAM!!! \n");
     for ( loop_var = 0; loop_var < 28*28; loop_var++ ) {
-        rc_4 = fpga_pci_peek(pci_bar_handle_4, (BRAM_BASE_ADDR + loop_var*4), &out_data[loop_var]);
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (TEST_BRAM_0_ADDR + loop_var*4), (uint32_t*)&out_data[loop_var]);
         fail_on(rc_4, out, "Unable to read from the BRAM !");
-        if(out_data[loop_var] != in_data[loop_var])
-       {
-          printf("Data mismatch! in_data[%d] = %d,  out_data[%d] = %d\n", loop_var, in_data[loop_var], loop_var, out_data[loop_var]);
+        if(*((float*)&out_data[loop_var]) != in_data[loop_var])
+        {
+          printf("Data mismatch! in_data[%d] = %f,  out_data[%d] = %f\n", loop_var,in_data[loop_var], loop_var, *(float*)&out_data[loop_var]);
         }
     }
-//    cout << "Finished test bram read and write check!!!" << endl;
+    cout << "Finished test bram read and write check!!!" << endl;
 //TODO: weight and bias data initialization
+*/
 //----------------------input weight data initialization ------------------//
+    // Prepare weights and bias for conv layer 1
+    //float *conv_1_weight2D = (float*)malloc(150 * sizeof(float));
+    //memset(conv_1_weight2D, 0, 150 * sizeof(float));
+    load_weight_conv(
+        weight_src, 
+        conv_weight,
+        weight_bias_record,
+        nn_channel_size_conv, 
+        nn_in_number_conv,
+        nn_out_number_conv,
+        in_number_conv);
+    cout << "Loading conv weight 1 to memory space, starting at: " <<conv_weight_num << '\n';
+    weightdata.open("./netOutput/weight_data.txt", ios::app);
+    weightdata <<"weight:"<< endl;
+    for(int i = 0;i < 6;i++){
+        for(int j = 0;j < 5;j++){
+            for(int k = 0;k < 5;k++){
+                weightdata << conv_weight[i*5*5+j*5+k] << " ";
+            }
+            weightdata << endl;
+        }
+        weightdata << endl;
+    }
+    weightdata << endl;
+
+    //for (int i = 0; i < 150; i++) {
+    //   conv_weight_mem_port[conv_weight_num] = (data_type_w)conv_weight[i];
+    //   conv_weight_num++;
+    //}
+    //free(conv_1_weight2D);
+    //float *conv_1_bias2D = (float*)malloc(6 * sizeof(float));
+    //memset(conv_1_bias2D, 0, 6 * sizeof(float));
+
 //----------------------input bias data initialization---------------------//
+    /*load_bias_conv(
+        weight_src, 
+        conv_bias,
+        weight_bias_record,
+        nn_channel_size_conv, 
+        nn_in_number_conv,
+        nn_out_number_conv,
+        in_number_conv);
+    cout << "Loading conv bias 1 to memory space, starting at: " <<conv_bias_num << '\n';
+    weightdata <<"bias:"<< endl;
+    for(int i = 0;i < 6;i++){
+        weightdata << conv_bias[i] << " ";
+    }
+    weightdata << endl;
+    weightdata << endl;*/
+    weightdata.close();
+    //for (int i = 0; i < 6; i++) {
+    //   conv_bias_mem_port[conv_bias_num] = (data_type_w)conv_bias[i];
+    //   conv_bias_num++;
+    //}
+    //free(conv_1_bias2D);
+    //in_number_conv++;
+
+
+//---------------------conv parameter bram transmission---------------------// 
+//    for(int i = 0; i < 16; i++){cout << acc_param[i] << "  ";}
+//    cout << endl;
+    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param, 16); 
+    Read_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_test_0, 16);
+/*
+    weightdata.open("params.txt", ios::app);
+    for(int i = 0; i < 16; i++){weightdata << acc_param_test_0[i] << "  ";}
+    weightdata << endl;
+    weightdata.close();
+*/ 
+    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param, 16); 
+    Read_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_test_1, 16);
+/*
+    weightdata.open("params.txt", ios::app);
+    for(int i = 0; i < 16; i++)
+    {
+        weightdata << acc_param_test_0[i] << "  ";
+        weightdata << acc_param_test_1[i] << "  ";
+    }
+    weightdata << endl;
+    weightdata.close();
+*/
+    cout << "Finished filling conv acc parameter into param bram!" << endl;
+
 //---------------------conv weight bram ------------------------------------//
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, in_data, 28*28);
-    Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, out_data, 28*28);
-    cout << "Finished conv weight bram read and write check!!!" << endl;
+    //nn_in_number_conv[in_number_conv]*nn_out_number_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]
+    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_weight, 6*5*5);
+//    Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_weight, 6*5*5);
+//    cout << "Finished conv weight bram read and write check!!!" << endl;
 //----------------------conv bias bram -------------------------------------//
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, in_data, 28*28);
-//    Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, out_data, 28*28);
-    cout << "Finished conv bias bram read and write check!!!" << endl;
+    //nn_out_number_conv[in_number_conv]
+    while (ifs >> str) {
+        float f = atof(str.c_str());
+        conv_bias[num] = f;
+        num++;
+    }
+    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 1024);
+//    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS_0, conv_bias, 6);
+
+    Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 1024);
+
+    weightdata.open("./netOutput/params.txt", ios::app);
+    for (int j=0; j< 1024; j++){
+        weightdata << conv_bias[j] << " ";
+    }
+    weightdata << endl;
+    weightdata.close();
+
+//    cout << "Finished conv bias bram read and write check!!!" << endl;
+//    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS_1, conv_bias, 6);
+//    Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS_1, conv_bias, 6);
+//    cout << "Finished conv bias bram read and write check!!!" << endl;
+/*
 //-----------------------fc weight bram -----------------------------------//
-    Fill_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, in_data, 28*28);
+    //Fill_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, in_data, 28*28);
 //    Read_Bram(pci_bar_handle_4, FC_W_BRAM_PCIS, out_data, 28*28);
-    cout << "Finished fc weight bram read and write check!!!" << endl;
+    //cout << "Finished fc weight bram read and write check!!!" << endl;
 //----------------------fc bias bram ---------------------------------------//
-    Fill_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, in_data, 28*28);
-    Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_data, 28*28);
-    cout << "Finished fc bias bram read and write check!!!" << endl;
+    //Fill_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, in_data, 28*28);
+    //Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_data, 28*28);
+    //cout << "Finished fc bias bram read and write check!!!" << endl;
+*/
 //----------------------input data buffer load------------------------------//
+
     Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 28*28);
+
 //    Read_Bram(pci_bar_handle_4, FC_B_BRAM_PCIS, out_res, 28*28);
-    cout << "Finished input data buffer load ......" << endl;
+//    cout << "Finished input data buffer load ......" << endl;
+/*
+    cout << "Test bram data write and read for OUT_BUF_1 " << endl;
+    for ( loop_var = 0; loop_var < 8096; loop_var++ ) {
+        rc_4 = fpga_pci_poke(pci_bar_handle_4, (BUF_OUT_1 + loop_var*4), (uint32_t)loop_var);
+        fail_on(rc_4, out, "Unable to write to BRAM !");  
+    }    
+    cout << "Read test for OUT_BUF_1" << endl;
+    for ( loop_var = 0; loop_var < 8096; loop_var++ ) {
+        rc_4 = fpga_pci_peek(pci_bar_handle_4, (BUF_OUT_1 + loop_var*4), &value);
+        fail_on(rc_4, out, "Unable to read from the BRAM !");
+        if(value == loop_var)
+        {
+          printf("Data mismatch! value = %d,  loop_var = %d\n", value, loop_var);
+        }
+    }
+    cout << "Finished OUT_BUF_1 read and write check!!!" << endl;
+*/
+ 
 //----------------------inference net ip status check -----------------------//    
+
     ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     cout << "Status feedback from inference ip is : " << ip_status << endl;
-    ip_start = clock();
+
+    gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, InstancePtr);
 
     while (!XInference_net_IsDone(pci_bar_handle, InstancePtr)) {
         count++;
     }
-    ip_finish = clock();
-    totaltime = (double)(ip_finish - ip_start) / CLOCKS_PER_SEC;
-    cout << "Convolution layer processing time = " << totaltime << "  s" << endl;
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Convolution layer processing time = " << diff << "  us" << endl;
     cout << "IP is done at " << count << " attempts" << endl; 
+
 //---------------Read convolution results out from output_buffer_1------------//
+
 //TODO: read the results data out for comparison -- single layer convolution    
     cout << "Read out convolutional results" << endl;
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 28*28);
-    for(i = 0; i < 6*28; i++ ) {
-        for(j = 0; j < 28; j++) {
-            cout << out_data[i*28 + j] << "  ";
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_data, 6*28*28);
+    outdata.open("./netOutput/out_data.txt", ios::app);
+    for(int i = 0;i < acc_param[2];i++){
+        for(int j = 0;j < acc_param[5];j++){
+            for(int k = 0;k < acc_param[6];k++){
+                outdata << out_data[i*acc_param[5]*acc_param[6]+j*acc_param[6]+k] << "  ";
+            }
+            outdata << endl;
         }
-	cout << endl;
+        outdata << endl;
     }
-   cout << endl;
+    outdata << endl;    
+    outdata.close();
+
 //------------------------------------------------------------------------------------------
     printf("\n");
     printf("Reading and verifying DDR_B Dst Buffer 1KB\n");
@@ -407,129 +543,4 @@ out:
 
     /* if there is an error code, exit with status 1 */
     return (rc != 0 ? 1 : 0);
-}
-
-
-/*
- * check if the corresponding AFI for hello_world is loaded
- */
-
-int check_afi_ready(int slot_id) {
-    struct fpga_mgmt_image_info info = {0}; 
-    int rc;
-
-    /* get local image description, contains status, vendor id, and device id. */
-    rc = fpga_mgmt_describe_local_image(slot_id, &info,0);
-    fail_on(rc, out, "Unable to get AFI information from slot %d. Are you running as root?",slot_id);
-
-    /* check to see if the slot is ready */
-    if (info.status != FPGA_STATUS_LOADED) {
-        rc = 1;
-        fail_on(rc, out, "AFI in Slot %d is not in READY state !", slot_id);
-    }
-
-    printf("AFI PCI  Vendor ID: 0x%x, Device ID 0x%x\n",
-        info.spec.map[FPGA_APP_PF].vendor_id,
-        info.spec.map[FPGA_APP_PF].device_id);
-
-    /* confirm that the AFI that we expect is in fact loaded */
-    if (info.spec.map[FPGA_APP_PF].vendor_id != pci_vendor_id ||
-        info.spec.map[FPGA_APP_PF].device_id != pci_device_id) {
-        printf("AFI does not show expected PCI vendor id and device ID. If the AFI "
-               "was just loaded, it might need a rescan. Rescanning now.\n");
-
-        rc = fpga_pci_rescan_slot_app_pfs(slot_id);
-        fail_on(rc, out, "Unable to update PF for slot %d",slot_id);
-        /* get local image description, contains status, vendor id, and device id. */
-        rc = fpga_mgmt_describe_local_image(slot_id, &info,0);
-        fail_on(rc, out, "Unable to get AFI information from slot %d",slot_id);
-
-        printf("AFI PCI  Vendor ID: 0x%x, Device ID 0x%x\n",
-            info.spec.map[FPGA_APP_PF].vendor_id,
-            info.spec.map[FPGA_APP_PF].device_id);
-
-        /* confirm that the AFI that we expect is in fact loaded after rescan */
-        if (info.spec.map[FPGA_APP_PF].vendor_id != pci_vendor_id ||
-             info.spec.map[FPGA_APP_PF].device_id != pci_device_id) {
-            rc = 1;
-            fail_on(rc, out, "The PCI vendor id and device of the loaded AFI are not "
-                             "the expected values.");
-        }
-    }
-    
-    return rc;
-
-out:
-    return 1;
-}
-
-
-void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset, uint32_t Data) {
-    int rc;
-    rc = fpga_pci_poke(pci_bar, BaseAddress + RegOffset, Data);
-    fail_on(rc, out, "Unable to read from IP !");  
-out:
-    cout << "Function fail!!" << endl;;
-}
-
-uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset) {
-    uint32_t data;
-    int rc;
-    rc = fpga_pci_peek(pci_bar, (BaseAddress + RegOffset), &data);
-    fail_on(rc, out, "Unable to read from the BRAM !");
-    return data;
-out:
-    return 0;
-}
-
-// int XInference_net_Initialize(XInference_net *InstancePtr, const char* InstanceName);
-// int XInference_net_Release(XInference_net *InstancePtr);
-
-void XInference_net_Start(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
-    uint32_t data;
-    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL) & 0x80;
-    XInference_net_WriteReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL, data | 0x01);
-}
-
-uint32_t XInference_net_IsDone(pci_bar_handle_t pci_bar, XInference_net *InstancePtr){
-    uint32_t data;
-    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    return (data >> 1) & 0x01;
-}
-
-uint32_t XInference_net_IsIdle(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
-    uint32_t data;
-    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    return (data >> 2) & 0x01;
-}
-
-uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *InstancePtr) {
-    uint32_t data;
-    data = XInference_net_ReadReg(pci_bar, InstancePtr->ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    return !(data & 0x1);
-}
-
-void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
-    int rc_4, loop_var;
-    // cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
-    printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
-    for ( loop_var = 0; loop_var < length; loop_var++ ) {
-       rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), data[loop_var]);
-    //    fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
-    }    
-    cout << "Loaded data to BRAM !!!" << endl;
-// out_fill:
-        // cout << "failed writing" << endl;
-}
-void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, uint32_t *data, int length) {
-    int rc_4, loop_var;
-    // cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
-    printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
-    for ( loop_var = 0; loop_var < length; loop_var++ ) {
-        rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), &data[loop_var]);
-        // fail_on(rc_4, out_read, "Unable to read from the BRAM !");
-    } 
-    cout << "Finished reading BRAM data!!!" << endl;
-// out_read:
-        // cout << "failed reading" << endl;
 }
