@@ -28,15 +28,17 @@
 // conv weight m_axi port -- axi_bram_ctrl_0 (32k)
 #define CONV_W_BRAM_PCIS UINT64_C(0x00C0000000)
 // conv bias m_axi port -- axi_bram_ctrl_1 (8k)
-#define CONV_B_BRAM_PCIS UINT64_C(0x00C2001000)
+#define CONV_B_BRAM_PCIS UINT64_C(0x00C2000000)
 // temp out 0 1 portA -- axi_bram_ctrl_2 (32k)
 #define BUF_OUT_0 UINT64_C(0x00C4000000)
 // temp out 1 1 portA -- axi_bram_ctrl_3 (32k)
 #define BUF_OUT_1 UINT64_C(0x00C6000000)
 // parameter bram definition -- axi_bram_ctrl_4 (4k)
-#define ACC_PARAMS_0 UINT64_C(0x00C8000000)
+#define CTRL_PARAMS UINT64_C(0x00C8000000)
 // parameter bram definition -- axi_bram_ctrl_5 (4k)
-#define ACC_PARAMS_1 UINT64_C(0x00CA000000)
+#define ACC_PARAMS_0 UINT64_C(0x00CA000000)
+// parameter bram definition -- axi_bram_ctrl_6 (4k)
+#define ACC_PARAMS_1 UINT64_C(0x00CC000000)
 
 
 #endif

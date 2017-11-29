@@ -24,7 +24,7 @@ void load_weight_conv(
         int nn_out_number_conv[],
         int in_number_conv) {
 
-    std::cout << "Loading CONV layer weights ..." << std::endl;
+    //std::cout << "Loading CONV layer weights ..." << std::endl;
     std::ifstream ifs(weight_src);
     std::string str;
     if (!ifs) {
@@ -55,9 +55,9 @@ void load_weight_conv(
 		} 
     }
     weight_bias_record = weight_bias_count;
-    std::cout << std::endl;
-    std::cout << "conv layer weights number in total is = " << weight_bias_count << std::endl;
-    std::cout << "network weights in total is = " << weight_bias_count << std::endl;
+    //std::cout << std::endl;
+    //std::cout << "conv layer weights number in total is = " << weight_bias_count << std::endl;
+    //std::cout << "network weights in total is = " << weight_bias_count << std::endl;
 }
 
 void load_weight_pooling(
@@ -68,7 +68,7 @@ void load_weight_pooling(
 	int nn_in_number_pooling[],
 	int in_number_pooling) {
 
-    std::cout << "Loading POOL layer weights ..." << std::endl;
+    //std::cout << "Loading POOL layer weights ..." << std::endl;
 
 	std::ifstream ifs(weight_src);
 	std::string str;
@@ -96,7 +96,7 @@ void load_weight_pooling(
 	}
 
 	weight_bias_record = weight_bias_count;
-	std::cout << "pooling layer weights number in total is = " << weight_bias_count << std::endl;
+	//std::cout << "pooling layer weights number in total is = " << weight_bias_count << std::endl;
 	ifs.close();
 	//return weight_v;
 }
@@ -111,7 +111,7 @@ void load_weight_fc(
 	int nn_out_number_fc[],
 	int in_number_fc) {
 
-    std::cout << "Loading FC layer weights ..." << std::endl;
+    //std::cout << "Loading FC layer weights ..." << std::endl;
 
 	std::ifstream ifs(weight_src);
 	std::string str;
@@ -147,7 +147,7 @@ void load_weight_fc(
 		}
 	}
 	weight_bias_record = weight_bias_count;
-	std::cout << "fc layer weights number in total is = " << weight_bias_count << std::endl;
+	//std::cout << "fc layer weights number in total is = " << weight_bias_count << std::endl;
 	ifs.close();
 }
 
@@ -160,16 +160,13 @@ void load_bias_conv(
 	int nn_out_number_conv[],
 	int in_number_conv) {
 
-	std::cout << "Loading CONV layer bias ..." << std::endl;
+	//std::cout << "Loading CONV layer bias ..." << std::endl;
 
 	std::ifstream ifs(weight_src);
     if (!ifs) {
         std::cout << "weight file not found !" << std::endl;
     }
 	std::string str;
-	if (!ifs) {
-		std::cout << "weight file not found !" << std::endl;
-	}
 	int layer_bias_num = nn_out_number_conv[in_number_conv];
 	int weight_bias_count = 0;
 	/*ifs >> str;
@@ -187,8 +184,8 @@ void load_bias_conv(
 		}
 	}
 	weight_bias_record = weight_bias_count;
-	std::cout << std::endl;
-	std::cout << "conv layer bias number in total is = " << weight_bias_count << std::endl;
+	//std::cout << std::endl;
+	//std::cout << "conv layer bias number in total is = " << weight_bias_count << std::endl;
 	ifs.close();
 	//return bias2D;
 }
@@ -201,7 +198,7 @@ void load_bias_pooling(
 	int nn_in_number_pooling[],
 	int in_number_pooling) {
 
-    std::cout << "Loading POOL layer bias ..." << std::endl;
+    //std::cout << "Loading POOL layer bias ..." << std::endl;
 
 	std::ifstream ifs(weight_src);
 	std::string str;
@@ -225,7 +222,7 @@ void load_bias_pooling(
 	}
 
 	weight_bias_record = weight_bias_count;
-	std::cout << "pooling layer bias number in total is = " << weight_bias_count << std::endl;
+	//std::cout << "pooling layer bias number in total is = " << weight_bias_count << std::endl;
 
 	ifs.close();
 	//return bias2D;
@@ -240,7 +237,7 @@ void load_bias_fc(
 	int nn_out_number_fc[],
 	int in_number_fc) {
 
-    std::cout << "Loading FC layer bias ..." << std::endl;
+    //std::cout << "Loading FC layer bias ..." << std::endl;
 
 	std::ifstream ifs(weight_src);
 	std::string str;
@@ -264,7 +261,7 @@ void load_bias_fc(
 	}
 
 	weight_bias_record = weight_bias_count;
-	std::cout << "fc layer bias number in total is = " << weight_bias_count << std::endl;
+	//std::cout << "fc layer bias number in total is = " << weight_bias_count << std::endl;
 	ifs.close();
 	//return bias2D;
 }

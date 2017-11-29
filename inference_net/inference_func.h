@@ -47,6 +47,22 @@ typedef struct {
 static uint16_t pci_vendor_id = 0x1D0F; /* Amazon PCI Vendor ID */
 static uint16_t pci_device_id = 0xF000; /* PCI Device ID preassigned by Amazon for F1 applications */
 
+#define HELLO_WORLD_REG_ADDR UINT64_C(0x0)
+
+#define DDR_SH_ADDR UINT64_C(0xE01000000)
+#define DDR_B_ADDR UINT64_C(0xD02000000)
+#define DDR_A_ADDR UINT64_C(0xC02000000)
+
+#define HELLO_WORLD_REG_ADDR_CONTROL UINT64_C(0x00)
+#define HELLO_WORLD_REG_ADDR_STATUS UINT64_C(0x04)
+
+#define HELLO_WORLD_REG_ADDR_SRC_MSB_ADDR UINT64_C(0x1C)
+#define HELLO_WORLD_REG_ADDR_DST_MSB_ADDR UINT64_C(0x24)
+
+#define HELLO_WORLD_REG_ADDR_SRC_ADDR UINT64_C(0x18)
+#define HELLO_WORLD_REG_ADDR_DST_ADDR UINT64_C(0x20)
+#define HELLO_WORLD_REG_ADDR_BYTES UINT64_C(0x28)
+
  // M_AXI_BAR1 connected to inference control port
 #define XINFERENCE_IP_CRTL_BUS_ADDR UINT64_C(0x010000)
 
@@ -135,7 +151,8 @@ void XInference_net_WriteReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uin
     rc = fpga_pci_poke(pci_bar, BaseAddress + RegOffset, Data);
     fail_on(rc, out, "Unable to read from IP !");  
 out:
-    cout << "Function fail!!" << endl;;
+    //cout << "Function fail!!" << endl;
+;
 }
 
 uint32_t XInference_net_ReadReg(pci_bar_handle_t pci_bar, uint64_t BaseAddress, uint64_t RegOffset) {
@@ -177,12 +194,12 @@ uint32_t XInference_net_IsReady(pci_bar_handle_t pci_bar, XInference_net *Instan
 void Fill_param(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, int *data, int length) {
     int rc_4, loop_var;
     // cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
-    printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
+    //printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), *(uint32_t*)&data[loop_var]);
     //    fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
     }    
-    cout << "Loaded data to BRAM !!!" << endl;
+    //cout << "Loaded data to BRAM !!!" << endl;
 // out_fill:
         // cout << "failed writing" << endl;
 }
@@ -190,12 +207,12 @@ void Fill_param(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, int *data, int 
 void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, float *data, int length) {
     int rc_4, loop_var;
     // cout << "Loading data to BRAM, location = " << pci_bar << "  BRAM_ADDRSS = " << BRAM_ADDRESS << endl;
-    printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
+    //printf("Loading data to BRAM, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
        rc_4 = fpga_pci_poke(pci_bar, (BRAM_ADDRESS + loop_var*4), *(uint32_t*)&data[loop_var]);
     //    fail_on(rc_4, out_fill, "Unable to write to BRAM !");  
     }    
-    cout << "Loaded data to BRAM !!!" << endl;
+    //cout << "Loaded data to BRAM !!!" << endl;
 // out_fill:
         // cout << "failed writing" << endl;
 }
@@ -203,12 +220,12 @@ void Fill_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, float *data, int
 void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, float *data, int length) {
     int rc_4, loop_var;
     // cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
-    printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
+    //printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), (uint32_t*)&data[loop_var]);
         // fail_on(rc_4, out_read, "Unable to read from the BRAM !");
     } 
-    cout << "Finished reading BRAM data!!!" << endl;
+    //cout << "Finished reading BRAM data!!!" << endl;
 // out_read:
         // cout << "failed reading" << endl;
 }
@@ -216,14 +233,48 @@ void Read_Bram(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, float *data, int
 void Read_param(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, int *data, int length) {
     int rc_4, loop_var;
     // cout << "Reading BRAM data, location = " << pci_bar << "  BRAM_ADDRESS = " << BRAM_ADDRESS << endl;
-    printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
+    //printf("Reading BRAM data, location = 0x%d, BRAM_ADDRESS = 0x%x \n", pci_bar, BRAM_ADDRESS);
     for ( loop_var = 0; loop_var < length; loop_var++ ) {
         rc_4 = fpga_pci_peek(pci_bar, (BRAM_ADDRESS + loop_var*4), (uint32_t*)&data[loop_var]);
         // fail_on(rc_4, out_read, "Unable to read from the BRAM !");
     } 
-    cout << "Finished reading BRAM data!!!" << endl;
+    //cout << "Finished reading BRAM data!!!" << endl;
 // out_read:
         // cout << "failed reading" << endl;
+}
+
+void set_cdma(pci_bar_handle_t pci_bar_handle,uint32_t src_value_1,uint32_t src_value_2,uint32_t dst_value_1,uint32_t dst_value_2,uint32_t bytes_value){
+    int rc;
+    printf("Setting Up CDMA Transfers with USR-AXI CDMA AXI4 Lite Registers\n");
+    
+    rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_SRC_ADDR, src_value_1);//shujulaiyuan di 32
+    //fail_on(rc, out, "Unable to write to the fpga !");  
+
+    rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_SRC_MSB_ADDR, src_value_2);//gao 32
+    //fail_on(rc, out, "Unable to write to the fpga !");  
+    
+    rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_DST_ADDR, dst_value_1);//di 32
+    //fail_on(rc, out, "Unable to write to the fpga !");
+
+    rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_DST_MSB_ADDR, dst_value_2);//gao 32
+    //fail_on(rc, out, "Unable to write to the fpga !");  
+    
+    //value = 0x00007168;//400 mingling
+    rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_BYTES, bytes_value);//shujuchangdu
+    //fail_on(rc, out, "Unable to write to the fpga !");
+    printf("Executing CDMA Transfers on DDR4_SH and polling status register\n");
+    printf("\n");
+
+    rc = fpga_pci_peek(pci_bar_handle, HELLO_WORLD_REG_ADDR_STATUS, &bytes_value);
+    //fail_on(rc, out, "Unable to read read from the fpga !");
+    
+    while(bytes_value != 0x00001002)//1002 zhixingwanle
+    {
+    rc = fpga_pci_peek(pci_bar_handle, HELLO_WORLD_REG_ADDR_STATUS, &bytes_value);
+    //fail_on(rc, out, "Unable to read read from the fpga !");
+    }
+    printf("CDMA Transfer Complete!\n");
+    printf("AXI CDMA Status Register Value: 0x%x\n", bytes_value);
 }
 
 const unsigned char * loadfile(const std::string &file, int &size) {
