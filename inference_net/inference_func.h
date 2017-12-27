@@ -245,7 +245,7 @@ void Read_param(pci_bar_handle_t pci_bar, uint64_t BRAM_ADDRESS, int *data, int 
 
 void set_cdma(pci_bar_handle_t pci_bar_handle,uint32_t src_value_1,uint32_t src_value_2,uint32_t dst_value_1,uint32_t dst_value_2,uint32_t bytes_value){
     int rc;
-    printf("Setting Up CDMA Transfers with USR-AXI CDMA AXI4 Lite Registers\n");
+    //printf("Setting Up CDMA Transfers with USR-AXI CDMA AXI4 Lite Registers\n");
     
     rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_SRC_ADDR, src_value_1);//shujulaiyuan di 32
     //fail_on(rc, out, "Unable to write to the fpga !");  
@@ -262,8 +262,8 @@ void set_cdma(pci_bar_handle_t pci_bar_handle,uint32_t src_value_1,uint32_t src_
     //value = 0x00007168;//400 mingling
     rc = fpga_pci_poke(pci_bar_handle, HELLO_WORLD_REG_ADDR_BYTES, bytes_value);//shujuchangdu
     //fail_on(rc, out, "Unable to write to the fpga !");
-    printf("Executing CDMA Transfers on DDR4_SH and polling status register\n");
-    printf("\n");
+    //printf("Executing CDMA Transfers on DDR4_SH and polling status register\n");
+    //printf("\n");
 
     rc = fpga_pci_peek(pci_bar_handle, HELLO_WORLD_REG_ADDR_STATUS, &bytes_value);
     //fail_on(rc, out, "Unable to read read from the fpga !");
@@ -273,8 +273,8 @@ void set_cdma(pci_bar_handle_t pci_bar_handle,uint32_t src_value_1,uint32_t src_
     rc = fpga_pci_peek(pci_bar_handle, HELLO_WORLD_REG_ADDR_STATUS, &bytes_value);
     //fail_on(rc, out, "Unable to read read from the fpga !");
     }
-    printf("CDMA Transfer Complete!\n");
-    printf("AXI CDMA Status Register Value: 0x%x\n", bytes_value);
+    //printf("CDMA Transfer Complete!\n");
+    //printf("AXI CDMA Status Register Value: 0x%x\n", bytes_value);
 }
 
 const unsigned char * loadfile(const std::string &file, int &size) {
