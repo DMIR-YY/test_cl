@@ -26,14 +26,16 @@ LDLIBS = -lfpga_mgmt -lrt -lpthread
 #SRC = test_lenet_new.cpp
 #SRC = test_cifarnet.cpp
 #SRC = test_cifarnet_new.cpp
-SRC = test_cifarnet_allmp.cpp
+#SRC = test_cifarnet_allmp.cpp
+SRC = test_bdport.cpp
 OBJ = $(SRC:.c=.o)
 #BIN = test_cl
 #BIN = test_lenet
 #BIN = test_cifarnet
 #BIN = test_lenet_multiport
 #BIN = test_cifarnet_multiport
-BIN = test_cifarnet_allmp
+#BIN = test_cifarnet_allmp
+BIN = test_bdport
 
 all: check_env $(BIN)
 

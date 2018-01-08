@@ -92,9 +92,22 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 
     data_type in_data[3*32*32];
     data_type  out_temp_full[8192];
-    data_type  out_temp_1[32768];
-    data_type  out_temp_2[32768];
-    data_type  out_temp_3[8192];
+    data_type  out_temp_1[4096];
+    data_type  out_temp_2[4096];
+    data_type  out_temp_3[4096];
+    data_type  out_temp_4[4096];
+    data_type  out_temp_5[4096];
+    data_type  out_temp_6[4096];
+    data_type  out_temp_7[4096];
+    data_type  out_temp_8[4096];
+    data_type  out_temp_1_1[4096];
+    data_type  out_temp_2_1[4096];
+    data_type  out_temp_3_1[4096];
+    data_type  out_temp_4_1[4096];
+    data_type  out_temp_5_1[4096];
+    data_type  out_temp_6_1[4096];
+    data_type  out_temp_7_1[4096];
+    data_type  out_temp_8_1[4096];
     data_type  fc_3_out[10];
     data_type_w conv_weight[2400+25600+51200+10240];
     data_type_w conv_weight_1[1]={1};
@@ -125,12 +138,12 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     int ctrl_param_1[2] = {1, 0};
     int ctrl_param_2[2] = {0, 1};
     int acc_param_conv_1[16] = {3, 5, 16, 32, 32, 32, 32, 1, 2, 1, 0, 0, 0, 0, 1, 1};
-    int acc_param_conv_2[16] = {32, 5, 16, 16, 16, 16, 16, 1, 2, 1, 0, 0, 0, 0, 1, 1};
-    int acc_param_conv_3[16] = {32, 5, 16, 8, 8, 8, 8, 1, 2, 1, 0, 0, 0, 0, 1, 1};
-    int acc_param_conv_4[16] = {64, 4, 10, 4, 4, 1, 1, 4, 0, 0, 0, 0, 0, 0, 1, 1};
+    int acc_param_conv_2[16] = {32, 5, 32, 16, 16, 16, 16, 1, 2, 1, 1024, 32, 1024, 0, 1, 1};
+    int acc_param_conv_3[16] = {32, 5, 64, 8, 8, 8, 8, 1, 2, 1, 4224, 64, 0, 0, 1, 1};
+    int acc_param_conv_4[16] = {64, 4, 10, 4, 4, 1, 1, 4, 0, 0, 10624, 128, 0, 0, 1, 1};
     int acc_param_pool_1[9] = {32, 32, 16, 3, 16, 16, 2, 0, 0};
-    int acc_param_pool_2[9] = {16, 16, 16, 3, 8, 8, 2, 0, 0};
-    int acc_param_pool_3[9] = {8, 8, 16, 3, 4, 4, 2, 0, 0};
+    int acc_param_pool_2[9] = {16, 16, 32, 3, 8, 8, 2, 0, 0};
+    int acc_param_pool_3[9] = {8, 8, 64, 3, 4, 4, 2, 0, 0};
 
     int w;
     int h;
@@ -485,17 +498,6 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
             }
         }
     }
-    outdata.open("./netOutput/weight.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    for(loop_var = 0; loop_var < 1280; loop_var++){
-        outdata << conv_weight_mem_port_1[10400+loop_var] << "  ";
-    }
-    outdata <<"pool_output:"<< endl;
-    for(loop_var = 0; loop_var < 1280; loop_var++){
-        outdata << conv_weight_mem_port_8[9600+loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();
     //
     for ( loop_var = 0; loop_var < 11680; loop_var++ ){
         conv_weight[conv_weight_num] = conv_weight_mem_port_1[loop_var];
@@ -530,7 +532,15 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         conv_weight_num++;
     }
     //write data to DDR_SH_ADDR
-    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR, conv_weight, 2400+25600+51200+10240);
+    //Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR, conv_weight, 2400+25600+51200+10240);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_1, conv_weight_mem_port_1, 11680);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_2, conv_weight_mem_port_2, 11680);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_3, conv_weight_mem_port_3, 11680);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_4, conv_weight_mem_port_4, 10880);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_5, conv_weight_mem_port_5, 10880);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_6, conv_weight_mem_port_6, 10880);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_7, conv_weight_mem_port_7, 10880);
+    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR_8, conv_weight_mem_port_8, 10880);
     Fill_Bram(pci_bar_handle_4, DDR_B_ADDR, conv_bias, 32+32+64+10);
     Fill_Bram(pci_bar_handle_4, DDR_A_ADDR, in_data, 3*32*32);
     
@@ -543,124 +553,18 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
 //---------------------conv 1 weight bram ------------------------------------//
     //nn_in_number_conv[in_number_conv]*nn_out_number_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]
     gettimeofday(&start,0);
-    //set_cdma(pci_bar_handle,0x01000000,0x0000000E,0xC8000000,0x00000000,0x00002580);
-    /*set_cdma(pci_bar_handle,0x01000000,0x0000000E,0xC4000000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00000258,0x0000000E,0xC4010000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x000004B0,0x0000000E,0xC4020000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00000708,0x0000000E,0xC4030000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00000960,0x0000000E,0xC4040000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00000BB8,0x0000000E,0xC4050000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00000E10,0x0000000E,0xC4060000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00001068,0x0000000E,0xC4070000,0x00000000,0x00000258);*/
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0, conv_weight_mem_port_1, 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1, conv_weight_mem_port_2, 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2, conv_weight_mem_port_3, 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+300, &conv_weight_mem_port_1[25], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+300, &conv_weight_mem_port_2[25], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+300, &conv_weight_mem_port_3[25], 25);
+    set_cdma(pci_bar_handle,0x01000000,0x0000000E,0xC4000000,0x00000000,0x00000640);
+    set_cdma(pci_bar_handle,0x01100000,0x0000000E,0xC4010000,0x00000000,0x00000640);
+    set_cdma(pci_bar_handle,0x01200000,0x0000000E,0xC4020000,0x00000000,0x00000640);
     
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+600, &conv_weight_mem_port_1[50], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+600, &conv_weight_mem_port_2[50], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+600, &conv_weight_mem_port_3[50], 25);
-    
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+900, &conv_weight_mem_port_1[75], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+900, &conv_weight_mem_port_2[75], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+900, &conv_weight_mem_port_3[75], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1200, &conv_weight_mem_port_1[100], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1200, &conv_weight_mem_port_2[100], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1200, &conv_weight_mem_port_3[100], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1500, &conv_weight_mem_port_1[125], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1500, &conv_weight_mem_port_2[125], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1500, &conv_weight_mem_port_3[125], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1800, &conv_weight_mem_port_1[150], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1800, &conv_weight_mem_port_2[150], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1800, &conv_weight_mem_port_3[150], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2100, &conv_weight_mem_port_1[175], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2100, &conv_weight_mem_port_2[175], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2100, &conv_weight_mem_port_3[175], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2400, &conv_weight_mem_port_1[200], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2400, &conv_weight_mem_port_2[200], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2400, &conv_weight_mem_port_3[200], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2700, &conv_weight_mem_port_1[225], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2700, &conv_weight_mem_port_2[225], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2700, &conv_weight_mem_port_3[225], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3000, &conv_weight_mem_port_1[250], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3000, &conv_weight_mem_port_2[250], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3000, &conv_weight_mem_port_3[250], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3300, &conv_weight_mem_port_1[275], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3300, &conv_weight_mem_port_2[275], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3300, &conv_weight_mem_port_3[275], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3600, &conv_weight_mem_port_1[300], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3600, &conv_weight_mem_port_2[300], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3600, &conv_weight_mem_port_3[300], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3900, &conv_weight_mem_port_1[325], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3900, &conv_weight_mem_port_2[325], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3900, &conv_weight_mem_port_3[325], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+4200, &conv_weight_mem_port_1[350], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+4200, &conv_weight_mem_port_2[350], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+4200, &conv_weight_mem_port_3[350], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+4500, &conv_weight_mem_port_1[375], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+4500, &conv_weight_mem_port_2[375], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+4500, &conv_weight_mem_port_3[375], 25);
-    /*for ( loop_var = 0; loop_var < 16384; loop_var++ ){
-        conv_weight[loop_var]=loop_var;
-    }
-    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR+8192*4, conv_weight, 8192);
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS+8192*4, &conv_weight[8192], 8192);
-    //set_cdma(pci_bar_handle,0x01000000,0x0000000E,0xC8000000,0x00000000,0x00008000);
-    Read_Bram(pci_bar_handle_4, DDR_SH_ADDR, conv_weight_2, 16384);
-    weightdata.open("./netOutput/weight.txt", ios::app);
-    weightdata << "weight:" << endl;
-    for ( loop_var = 0; loop_var < 16384; loop_var++ ){
-        weightdata << conv_weight_2[loop_var] << " ";
-    }
-    weightdata << endl;
-    weightdata.close();*/
-    /*Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_weight, 8192);
-    //set_cdma(pci_bar_handle,0x01000000+0x00008000,0x0000000E,0xC8000000,0x00000000,0x00008000);
-    Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS+8192*4, conv_weight_2, 8192);
-    weightdata.open("./netOutput/weight.txt", ios::app);
-    weightdata << "weight:" << endl;
-    for ( loop_var = 0; loop_var < 8192; loop_var++ ){
-        weightdata << conv_weight_2[loop_var] << " ";
-    }
-    weightdata << endl;
-    weightdata.close();*/
-//    cout << "Finished conv weight bram read and write check!!!" << endl;
 //----------------------conv 1 bias bram -------------------------------------//
     //nn_out_number_conv[in_number_conv]
     Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 32);
-    //set_cdma(pci_bar_handle,0x02000000,0x0000000D,0xC2000000,0x00000000,0x00000080);
-    /*Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias_1, 32);
-    weightdata.open("./netOutput/bias.txt", ios::app);
-    for ( loop_var = 0; loop_var < 32; loop_var++ ){
-        weightdata << conv_bias_1[loop_var] << " ";
-    }
-    weightdata << endl;
-    weightdata.close();*/
 
 //----------------------input data buffer load------------------------------//
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 3*32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data, 32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_1, &in_data[32*32], 32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_2, &in_data[2*32*32], 32*32);
     set_cdma(pci_bar_handle,0x02000000,0x0000000C,0xC2000000,0x00000000,0x00001000);
     set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000C,0xC2010000,0x00000000,0x00001000);
     set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000C,0xC2020000,0x00000000,0x00001000);
-    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00003000);
 //----------------------conv_1 layer -----------------------//  
 //----------------------inference net ip status check -----------------------//    
     //conv 1-1
@@ -669,41 +573,52 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
     cout << "Convolution layer 1_1 data load time = " << diff << "  us" << endl;
-    //gettimeofday(&start,0);
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, &InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 1_1 ReadReg time = " << diff << "  us" << endl;
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
+
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
+    //load_weight
+    set_cdma(pci_bar_handle,0x01000000+0x00000640,0x0000000E,0xC4000000+0x00000640,0x00000000,0x00000640);
+    set_cdma(pci_bar_handle,0x01100000+0x00000640,0x0000000E,0xC4010000+0x00000640,0x00000000,0x00000640);
+    set_cdma(pci_bar_handle,0x01200000+0x00000640,0x0000000E,0xC4020000+0x00000640,0x00000000,0x00000640);
+
+    //load_data
+    set_cdma(pci_bar_handle,0x02000000,0x0000000C,0xC2000000+0x00001000,0x00000000,0x00001000);
+    set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000C,0xC2010000+0x00001000,0x00000000,0x00001000);
+    set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000C,0xC2020000+0x00001000,0x00000000,0x00001000);
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 8192);
+    cout << "Convolution layer 1_1 processing time = " << diff << "  us" << endl;
+    /*gettimeofday(&start,0);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, &out_temp_1[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_1, &out_temp_2[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_2, &out_temp_3[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_3, &out_temp_4[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_4, &out_temp_5[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_5, &out_temp_6[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_6, &out_temp_7[0], 2048);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_7, &out_temp_8[0], 2048);*/
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 2048);
     outdata.open("./netOutput/out_temp_data.txt", ios::app);
     outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 8192; loop_var++){
+    for(loop_var = 0; loop_var < 2048; loop_var++){
         outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
     }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 1_1 out store time = " << diff << "  us" << endl;
     outdata << endl;    
     outdata.close();*/
+    /*gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Convolution layer 1_1 out store time = " << diff << "  us" << endl;*/
+    
     //pool 1_1
     gettimeofday(&start,0);
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_1, 9); 
     gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Pooling layer 1_1 data load time = " << diff << "  us" << endl;
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Pooling layer 1_1 data load time = " << diff << "  us" << endl;
     //----------------------inference net ip status check -----------------------//    
     //ip_status = XInference_net_ReadReg(pci_bar_handle, &InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
@@ -714,17 +629,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
+    cout << "Pooling layer 1_1 processing time = " << diff << "  us" << endl;
     gettimeofday(&start,0);
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 2048);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*256], 256);*/
     set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000400);
     set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000400);
     set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000400);
@@ -744,8 +650,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     set_cdma(pci_bar_handle,0xC2070000+0x00000400,0x00000000,0x02000000+0x00003C00,0x0000000E,0x00000400);
     /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
     outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 4096);
-    for(loop_var = 0; loop_var < 4096; loop_var++){
+    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 512);
+    for(loop_var = 0; loop_var < 512; loop_var++){
         outdata << out_temp_full[loop_var] << "  ";
         out_temp_2[loop_var]=out_temp_full[loop_var];
     }
@@ -754,91 +660,14 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
     cout << "Pooling layer 1_1 out store time = " << diff << "  us" << endl;
+
     //conv 1-2
     gettimeofday(&start,0);
+    acc_param_conv_1[10] = 400;
     acc_param_conv_1[11] = 16;
-    //acc_param_conv_1[13] = 2048;
+    acc_param_conv_1[12] = 1024;
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2); 
     Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16); 
-    /*set_cdma(pci_bar_handle,0x01000000+0x000012C0,0x0000000E,0xC4000000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00001518,0x0000000E,0xC4010000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00001770,0x0000000E,0xC4020000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x000019C8,0x0000000E,0xC4030000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00001C20,0x0000000E,0xC4040000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00001E78,0x0000000E,0xC4050000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x000020D0,0x0000000E,0xC4060000,0x00000000,0x00000258);
-    set_cdma(pci_bar_handle,0x01000000+0x00002328,0x0000000E,0xC4070000,0x00000000,0x00000258);*/
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0, &conv_weight_mem_port_1[400], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1, &conv_weight_mem_port_2[400], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2, &conv_weight_mem_port_3[400], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+300, &conv_weight_mem_port_1[425], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+300, &conv_weight_mem_port_2[425], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+300, &conv_weight_mem_port_3[425], 25);
-    
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+600, &conv_weight_mem_port_1[450], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+600, &conv_weight_mem_port_2[450], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+600, &conv_weight_mem_port_3[450], 25);
-    
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+900, &conv_weight_mem_port_1[475], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+900, &conv_weight_mem_port_2[475], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+900, &conv_weight_mem_port_3[475], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1200, &conv_weight_mem_port_1[500], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1200, &conv_weight_mem_port_2[500], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1200, &conv_weight_mem_port_3[500], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1500, &conv_weight_mem_port_1[525], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1500, &conv_weight_mem_port_2[525], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1500, &conv_weight_mem_port_3[525], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+1800, &conv_weight_mem_port_1[550], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+1800, &conv_weight_mem_port_2[550], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+1800, &conv_weight_mem_port_3[550], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2100, &conv_weight_mem_port_1[575], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2100, &conv_weight_mem_port_2[575], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2100, &conv_weight_mem_port_3[575], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2400, &conv_weight_mem_port_1[600], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2400, &conv_weight_mem_port_2[600], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2400, &conv_weight_mem_port_3[600], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+2700, &conv_weight_mem_port_1[625], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+2700, &conv_weight_mem_port_2[625], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+2700, &conv_weight_mem_port_3[625], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3000, &conv_weight_mem_port_1[650], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3000, &conv_weight_mem_port_2[650], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3000, &conv_weight_mem_port_3[650], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3300, &conv_weight_mem_port_1[675], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3300, &conv_weight_mem_port_2[675], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3300, &conv_weight_mem_port_3[675], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3600, &conv_weight_mem_port_1[700], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3600, &conv_weight_mem_port_2[700], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3600, &conv_weight_mem_port_3[700], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3900, &conv_weight_mem_port_1[725], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3900, &conv_weight_mem_port_2[725], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3900, &conv_weight_mem_port_3[725], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+4200, &conv_weight_mem_port_1[750], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+4200, &conv_weight_mem_port_2[750], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+4200, &conv_weight_mem_port_3[750], 25);
-
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+4500, &conv_weight_mem_port_1[775], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+4500, &conv_weight_mem_port_2[775], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+4500, &conv_weight_mem_port_3[775], 25);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, in_data, 3*32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data, 32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_1, &in_data[32*32], 32*32);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_2, &in_data[2*32*32], 32*32);
-    set_cdma(pci_bar_handle,0x02000000,0x0000000C,0xC2000000,0x00000000,0x00001000);
-    set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000C,0xC2010000,0x00000000,0x00001000);
-    set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000C,0xC2020000,0x00000000,0x00001000);
-    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00003000);
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
     cout << "Convolution layer 1_2 data load time = " << diff << "  us" << endl;
@@ -846,26 +675,55 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
+    //load_weight_conv_2
+    set_cdma(pci_bar_handle,0x01000000+0x00000C80,0x0000000E,0xC4000000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01100000+0x00000C80,0x0000000E,0xC4010000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01200000+0x00000C80,0x0000000E,0xC4020000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01300000,0x0000000E,0xC4030000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01400000,0x0000000E,0xC4030000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01500000,0x0000000E,0xC4050000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01600000,0x0000000E,0xC4060000+0x00001000,0x00000000,0x00003200);
+    set_cdma(pci_bar_handle,0x01700000,0x0000000E,0xC4070000+0x00001000,0x00000000,0x00003200);
+    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS+32*4, conv_2_bias2D, 32);
+    
+    //load_data_conv_2
+    set_cdma(pci_bar_handle,0x02000000,0x0000000E,0xC2000000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00000400,0x0000000E,0xC2010000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00000800,0x0000000E,0xC2020000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00000C00,0x0000000E,0xC2030000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000E,0xC2040000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00001400,0x0000000E,0xC2050000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00001800,0x0000000E,0xC2060000+0x00001000,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00001C00,0x0000000E,0xC2070000+0x00001000,0x00000000,0x00000400);
+
+    set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000E,0xC2000000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00002400,0x0000000E,0xC2010000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00002800,0x0000000E,0xC2020000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00002C00,0x0000000E,0xC2030000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00003000,0x0000000E,0xC2040000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00003400,0x0000000E,0xC2050000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00003800,0x0000000E,0xC2060000+0x00001000+0x00000400,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00003C00,0x0000000E,0xC2070000+0x00001000+0x00000400,0x00000000,0x00000400);
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
+    cout << "Convolution layer 1_2 processing time = " << diff << "  us" << endl;
     //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 8192);
+    /*gettimeofday(&start,0);*/
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_7, out_temp_full, 2048);
     outdata.open("./netOutput/out_temp_data.txt", ios::app);
     outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 8192; loop_var++){
+    for(loop_var = 0; loop_var < 2048; loop_var++){
         outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[8192+loop_var]=out_temp_full[loop_var];
     }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 1_2 out store time = " << diff << "  us" << endl;
     outdata << endl;    
     outdata.close();*/
+    /*gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Convolution layer 1_2 out store time = " << diff << "  us" << endl;*/
+    
     //pool 1_2
     gettimeofday(&start,0);
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
@@ -883,17 +741,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
+    cout << "Pooling layer 1_2 processing time = " << diff << "  us" << endl;
     gettimeofday(&start,0);
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 2048);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*256], 256);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*256], 256);*/
     set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02004000,0x0000000E,0x00000400);
     set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02004000+0x00000400,0x0000000E,0x00000400);
     set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02004000+0x00000800,0x0000000E,0x00000400);
@@ -913,10 +762,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     set_cdma(pci_bar_handle,0xC2070000+0x00000400,0x00000000,0x02004000+0x00003C00,0x0000000E,0x00000400);
     /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
     outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE02004000, out_temp_full, 4096);
-    for(loop_var = 0; loop_var < 4096; loop_var++){
+    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, out_temp_full, 512);
+    for(loop_var = 0; loop_var < 512; loop_var++){
         outdata << out_temp_full[loop_var] << "  ";
-        out_temp_2[4096+loop_var]=out_temp_full[loop_var];
     }
     outdata << endl;    
     outdata.close();*/
@@ -928,82 +776,52 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     gettimeofday(&start,0); 
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_2, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_2_weight2D, 8000);
-    /*set_cdma(pci_bar_handle,0x01000000+0x00002580,0x0000000E,0xC4000000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00003200,0x0000000E,0xC4010000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00006400,0x0000000E,0xC4020000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00009600,0x0000000E,0xC4030000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x0000C800,0x0000000E,0xC4040000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x0000FA00,0x0000000E,0xC4050000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00012C00,0x0000000E,0xC4060000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00015E00,0x0000000E,0xC4070000,0x00000000,0x00003200);*/
-    for(int i = 0; i < 16; i++){
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[0+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[0+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[0+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[0+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[0+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_2_bias2D, 16);
-    //set_cdma(pci_bar_handle,0x02000000+0x00000080,0x0000000D,0xC2000000,0x00000000,0x00000028);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 8192);
 
-    //out
-    set_cdma(pci_bar_handle,0x02000000,0x0000000E,0xC2000000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000400,0x0000000E,0xC2010000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000800,0x0000000E,0xC2020000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000C00,0x0000000E,0xC2030000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000E,0xC2040000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001400,0x0000000E,0xC2050000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001800,0x0000000E,0xC2060000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001C00,0x0000000E,0xC2070000,0x00000000,0x00000400);
+    //load_data
+    set_cdma(pci_bar_handle,0x02000000+0x00004000,0x0000000E,0xC2000000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00004400,0x0000000E,0xC2010000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00004800,0x0000000E,0xC2020000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00004C00,0x0000000E,0xC2030000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00005000,0x0000000E,0xC2040000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00005400,0x0000000E,0xC2050000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00005800,0x0000000E,0xC2060000+0x00001000+0x00000800,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00005C00,0x0000000E,0xC2070000+0x00001000+0x00000800,0x00000000,0x00000400);
 
-    set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000E,0xC2000000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002400,0x0000000E,0xC2010000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002800,0x0000000E,0xC2020000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002C00,0x0000000E,0xC2030000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003000,0x0000000E,0xC2040000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003400,0x0000000E,0xC2050000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003800,0x0000000E,0xC2060000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003C00,0x0000000E,0xC2070000+0x00000400,0x00000000,0x00000400);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00004000,0x0000000E,0xC2000000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004400,0x0000000E,0xC2010000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004800,0x0000000E,0xC2020000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004C00,0x0000000E,0xC2030000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005000,0x0000000E,0xC2040000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005400,0x0000000E,0xC2050000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005800,0x0000000E,0xC2060000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005C00,0x0000000E,0xC2070000+0x00000800,0x00000000,0x00000400);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00006000,0x0000000E,0xC2000000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006400,0x0000000E,0xC2010000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006800,0x0000000E,0xC2020000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006C00,0x0000000E,0xC2030000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007000,0x0000000E,0xC2040000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007400,0x0000000E,0xC2050000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007800,0x0000000E,0xC2060000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007C00,0x0000000E,0xC2070000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00006000,0x0000000E,0xC2000000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00006400,0x0000000E,0xC2010000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00006800,0x0000000E,0xC2020000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00006C00,0x0000000E,0xC2030000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00007000,0x0000000E,0xC2040000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00007400,0x0000000E,0xC2050000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00007800,0x0000000E,0xC2060000+0x00001000+0x00000C00,0x00000000,0x00000400);
+    set_cdma(pci_bar_handle,0x02000000+0x00007C00,0x0000000E,0xC2070000+0x00001000+0x00000C00,0x00000000,0x00000400);
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 2_1 data load time = " << diff << "  us" << endl;
-    //conv 2-1
+    cout << "Convolution layer 2 data load time = " << diff << "  us" << endl;
     //----------------------inference net ip status check -----------------------//    
+    //conv 2
     //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
+    //load_weight_conv_3
+    set_cdma(pci_bar_handle,0x01000000+0x00003E80,0x0000000E,0xC4000000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01100000+0x00003E80,0x0000000E,0xC4010000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01200000+0x00003E80,0x0000000E,0xC4020000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01300000+0x00003200,0x0000000E,0xC4030000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01400000+0x00003200,0x0000000E,0xC4030000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01500000+0x00003200,0x0000000E,0xC4050000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01600000+0x00003200,0x0000000E,0xC4060000+0x00004200,0x00000000,0x00006400);
+    set_cdma(pci_bar_handle,0x01700000+0x00003200,0x0000000E,0xC4070000+0x00004200,0x00000000,0x00006400);
+    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS+64*4, conv_3_bias2D, 64);
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
+    cout << "Convolution layer 2 processing time = " << diff << "  us" << endl;
     //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0); 
+    /*gettimeofday(&start,0);
     /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 1024);
     outdata.open("./netOutput/out_temp_data.txt", ios::app);
     outdata <<"conv_output:"<< endl;
@@ -1013,231 +831,17 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     outdata << endl;    
     outdata.close();*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_1, out_temp_full, 512);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 512; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_2, out_temp_full, 512);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 512; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 2_1 out store time = " << diff << "  us" << endl;
-    //pool 2_1
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_2, 9); 
-    gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Pooling layer 2_1 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
+    /*gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 640);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*64], 64);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64*4, &out_temp_full[8*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64*4, &out_temp_full[9*64], 64);*/
-
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x03000000,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x03000000+0x00000100,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x03000000+0x00000200,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x03000000+0x00000300,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x03000000+0x00000400,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x03000000+0x00000500,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x03000000+0x00000600,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x03000000+0x00000700,0x0000000E,0x00000100);*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[0], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[128], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[192], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[256], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[320], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[384], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[448], 64);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+256, &out_temp_full[512], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+256, &out_temp_full[576], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+256, &out_temp_full[640], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+256, &out_temp_full[704], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+256, &out_temp_full[768], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+256, &out_temp_full[832], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+256, &out_temp_full[896], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+256, &out_temp_full[960], 64);*/
-
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x03000000,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x03000000+0x00000100,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x03000000+0x00000200,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x03000000+0x00000300,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x03000000+0x00000400,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x03000000+0x00000500,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x03000000+0x00000600,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x03000000+0x00000700,0x0000000E,0x00000100);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000100,0x00000000,0x03000000+0x00000800,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000100,0x00000000,0x03000000+0x00000900,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000100,0x00000000,0x03000000+0x00000A00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000100,0x00000000,0x03000000+0x00000B00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000100,0x00000000,0x03000000+0x00000C00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000100,0x00000000,0x03000000+0x00000D00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000100,0x00000000,0x03000000+0x00000E00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000100,0x00000000,0x03000000+0x00000F00,0x0000000E,0x00000100);
-
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_3, 2048);
-    for(loop_var = 0; loop_var < 1024; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 2_1 out load time = " << diff << "  us" << endl;
+    cout << "Convolution layer 2_1 out store time = " << diff << "  us" << endl;*/
     
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_2, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_2_weight2D, 8000);
-    /*set_cdma(pci_bar_handle,0x01000000+0x00002580,0x0000000E,0xC4000000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00003200,0x0000000E,0xC4010000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00006400,0x0000000E,0xC4020000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00009600,0x0000000E,0xC4030000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x0000C800,0x0000000E,0xC4040000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x0000FA00,0x0000000E,0xC4050000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00012C00,0x0000000E,0xC4060000,0x00000000,0x00003200);
-    set_cdma(pci_bar_handle,0x01000000+0x00002580+0x00015E00,0x0000000E,0xC4070000,0x00000000,0x00003200);*/
-    for(int i = 0; i < 16; i++){
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[2400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[2400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[2400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[1600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[1600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[1600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[1600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[1600+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, &conv_2_bias2D[16], 16);
-    //set_cdma(pci_bar_handle,0x02000000+0x00000080,0x0000000D,0xC2000000,0x00000000,0x00000028);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 8192);
-
-    //out
-    set_cdma(pci_bar_handle,0x02000000,0x0000000E,0xC2000000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000400,0x0000000E,0xC2010000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000800,0x0000000E,0xC2020000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00000C00,0x0000000E,0xC2030000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001000,0x0000000E,0xC2040000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001400,0x0000000E,0xC2050000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001800,0x0000000E,0xC2060000,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00001C00,0x0000000E,0xC2070000,0x00000000,0x00000400);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00002000,0x0000000E,0xC2000000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002400,0x0000000E,0xC2010000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002800,0x0000000E,0xC2020000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00002C00,0x0000000E,0xC2030000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003000,0x0000000E,0xC2040000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003400,0x0000000E,0xC2050000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003800,0x0000000E,0xC2060000+0x00000400,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00003C00,0x0000000E,0xC2070000+0x00000400,0x00000000,0x00000400);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00004000,0x0000000E,0xC2000000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004400,0x0000000E,0xC2010000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004800,0x0000000E,0xC2020000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00004C00,0x0000000E,0xC2030000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005000,0x0000000E,0xC2040000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005400,0x0000000E,0xC2050000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005800,0x0000000E,0xC2060000+0x00000800,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00005C00,0x0000000E,0xC2070000+0x00000800,0x00000000,0x00000400);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00006000,0x0000000E,0xC2000000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006400,0x0000000E,0xC2010000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006800,0x0000000E,0xC2020000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00006C00,0x0000000E,0xC2030000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007000,0x0000000E,0xC2040000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007400,0x0000000E,0xC2050000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007800,0x0000000E,0xC2060000+0x00000C00,0x00000000,0x00000400);
-    set_cdma(pci_bar_handle,0x02000000+0x00007C00,0x0000000E,0xC2070000+0x00000C00,0x00000000,0x00000400);
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 2_2 data load time = " << diff << "  us" << endl;
-    //conv 2-2
-    //----------------------inference net ip status check -----------------------//    
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0); 
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 1024);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 1024; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_1, out_temp_full, 512);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 512; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_2, out_temp_full, 512);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 512; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 2_1 out store time = " << diff << "  us" << endl;
-    //pool 2_2
+    //pool 2
     gettimeofday(&start,0); 
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_2, 9); 
     gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Pooling layer 2_2 data load time = " << diff << "  us" << endl;
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Pooling layer 2 data load time = " << diff << "  us" << endl;
     //----------------------inference net ip status check -----------------------//    
     //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
@@ -1248,154 +852,49 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 640);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*64], 64);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64*4, &out_temp_full[8*64], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64*4, &out_temp_full[9*64], 64);*/
-
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x03000000,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x03000000+0x00000100,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x03000000+0x00000200,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x03000000+0x00000300,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x03000000+0x00000400,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x03000000+0x00000500,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x03000000+0x00000600,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x03000000+0x00000700,0x0000000E,0x00000100);*/
-
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[1024], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[1088], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[1152], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[1216], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[1280], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[1344], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[1408], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[1472], 64);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+256, &out_temp_full[1536], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+256, &out_temp_full[1600], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+256, &out_temp_full[1664], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+256, &out_temp_full[1728], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+256, &out_temp_full[1792], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+256, &out_temp_full[1856], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+256, &out_temp_full[1920], 64);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+256, &out_temp_full[1984], 64);*/
-
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x03000000+0x00001000,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x03000000+0x00001100,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x03000000+0x00001200,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x03000000+0x00001300,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x03000000+0x00001400,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x03000000+0x00001500,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x03000000+0x00001600,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x03000000+0x00001700,0x0000000E,0x00000100);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000100,0x00000000,0x03000000+0x00001800,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000100,0x00000000,0x03000000+0x00001900,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000100,0x00000000,0x03000000+0x00001A00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000100,0x00000000,0x03000000+0x00001B00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000100,0x00000000,0x03000000+0x00001C00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000100,0x00000000,0x03000000+0x00001D00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000100,0x00000000,0x03000000+0x00001E00,0x0000000E,0x00000100);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000100,0x00000000,0x03000000+0x00001F00,0x0000000E,0x00000100);
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
+    cout << "Pooling layer 2 processing time = " << diff << "  us" << endl;
+    /*gettimeofday(&start,0); 
+    outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
     outdata <<"pool_output:"<< endl;
     //Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_3, 2048);
-    for(loop_var = 0; loop_var < 1024; loop_var++){
-        outdata << out_temp_full[1024+loop_var] << "  ";
+    for(loop_var = 0; loop_var < 256; loop_var++){
+        outdata << out_temp_1_1[loop_var] << "  ";
     }
     outdata << endl;    
-    outdata.close();*/
+    outdata.close();
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 2_1 out load time = " << diff << "  us" << endl;
+    cout << "Pooling layer 2_1 processing time = " << diff << "  us" << endl;*/
 
     //----------------------conv_3 layer -----------------------//   
     gettimeofday(&start,0); 
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_3, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_3_weight2D, 8000);
-    for(int i = 0; i < 16; i++){
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[4000+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[4000+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[4000+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[3200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[3200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[3200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[3200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[3200+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_3_bias2D, 16);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_3, 2048);
-
-    //out
-    set_cdma(pci_bar_handle,0x03000000,0x0000000E,0xC2000000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000100,0x0000000E,0xC2010000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000200,0x0000000E,0xC2020000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000300,0x0000000E,0xC2030000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000400,0x0000000E,0xC2040000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000500,0x0000000E,0xC2050000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000600,0x0000000E,0xC2060000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000700,0x0000000E,0xC2070000,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00000800,0x0000000E,0xC2000000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000900,0x0000000E,0xC2010000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000A00,0x0000000E,0xC2020000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000B00,0x0000000E,0xC2030000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000C00,0x0000000E,0xC2040000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000D00,0x0000000E,0xC2050000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000E00,0x0000000E,0xC2060000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000F00,0x0000000E,0xC2070000+0x00000100,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001000,0x0000000E,0xC2000000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001100,0x0000000E,0xC2010000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001200,0x0000000E,0xC2020000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001300,0x0000000E,0xC2030000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001400,0x0000000E,0xC2040000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001500,0x0000000E,0xC2050000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001600,0x0000000E,0xC2060000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001700,0x0000000E,0xC2070000+0x00000200,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001800,0x0000000E,0xC2000000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001900,0x0000000E,0xC2010000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001A00,0x0000000E,0xC2020000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001B00,0x0000000E,0xC2030000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001C00,0x0000000E,0xC2040000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001D00,0x0000000E,0xC2050000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001E00,0x0000000E,0xC2060000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001F00,0x0000000E,0xC2070000+0x00000300,0x00000000,0x00000100);
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE03000000, out_temp_full, 2048);
-    for(loop_var = 0; loop_var < 2048; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 3_1 data load time = " << diff << "  us" << endl;
+    cout << "Convolution layer 3 data load time = " << diff << "  us" << endl;
     //----------------------inference net ip status check -----------------------//    
-    //conv 3-1
+    //conv 3
     //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
+    //load_weight_fc_1
+    set_cdma(pci_bar_handle,0x01000000+0x0000A280,0x0000000E,0xC4000000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01100000+0x0000A280,0x0000000E,0xC4010000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01200000+0x0000A280,0x0000000E,0xC4020000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01300000+0x00009600,0x0000000E,0xC4030000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01400000+0x00009600,0x0000000E,0xC4030000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01500000+0x00009600,0x0000000E,0xC4050000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01600000+0x00009600,0x0000000E,0xC4060000+0x0000A600,0x00000000,0x00001400);
+    set_cdma(pci_bar_handle,0x01700000+0x00009600,0x0000000E,0xC4070000+0x0000A600,0x00000000,0x00001400);
+    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS+128*4, fc_1_bias2D, 10);
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
+    cout << "Convolution layer 3 processing time = " << diff << "  us" << endl;
     //cout << "IP is done at " << count << " attempts" << endl; 
     //gettimeofday(&start,0); 
     /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 640);
@@ -1405,18 +904,18 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         outdata << out_temp_full[loop_var] << "  ";
         out_temp_1[loop_var]=out_temp_full[loop_var];
     }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 3_1 out load time = " << diff << "  us" << endl;
     outdata << endl;    
-    outdata.close();*/
-    //pool 3_1
+    outdata.close();
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Convolution layer 3_1 out load time = " << diff << "  us" << endl;*/
+    
+    //pool 3
     gettimeofday(&start,0); 
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_3, 9); 
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_1 data load time = " << diff << "  us" << endl;
+    cout << "Pooling layer 3 data load time = " << diff << "  us" << endl;
     //----------------------inference net ip status check -----------------------//    
     //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
     //cout << "Status feedback from inference ip is : " << ip_status << endl;
@@ -1427,716 +926,25 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 160);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*16], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+16*4, &out_temp_full[8*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+16*4, &out_temp_full[9*16], 16);*/
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000200,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x00000600,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000A00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000C00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x00000E00,0x0000000E,0x00000200);*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[0], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[32], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[48], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[64], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[80], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[96], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[112], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64, &out_temp_full[128], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64, &out_temp_full[144], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+64, &out_temp_full[160], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+64, &out_temp_full[176], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+64, &out_temp_full[192], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+64, &out_temp_full[208], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+64, &out_temp_full[224], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+64, &out_temp_full[240], 16);*/
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000040,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000080,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x000000C0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000100,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000140,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000180,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x000001C0,0x0000000E,0x00000040);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000040,0x00000000,0x02000000+0x00000200,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000040,0x00000000,0x02000000+0x00000240,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000040,0x00000000,0x02000000+0x00000280,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000040,0x00000000,0x02000000+0x000002C0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000040,0x00000000,0x02000000+0x00000300,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000040,0x00000000,0x02000000+0x00000340,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000040,0x00000000,0x02000000+0x00000380,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000040,0x00000000,0x02000000+0x000003C0,0x0000000E,0x00000040);
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
+    cout << "Pooling layer 3 processing time = " << diff << "  us" << endl;
+    /*gettimeofday(&start,0); 
+    outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
     outdata <<"pool_output:"<< endl;
     //Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 160);
-    for(loop_var = 0; loop_var < 256; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
+    for(loop_var = 0; loop_var < 128; loop_var++){
+        outdata << out_temp_1_1[loop_var] << "  ";
     //    out_temp_2[loop_var]=out_temp_full[loop_var];
     }
     outdata << endl;    
-    outdata.close();*/
+    outdata.close();
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_1 out load time = " << diff << "  us" << endl;
-
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_3, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_3_weight2D, 8000);
-    for(int i = 0; i < 16; i++){
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[5600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[5600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[5600+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[4800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[4800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[4800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[4800+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[4800+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, &conv_3_bias2D[16], 16);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_3, 2048);
-
-    //out
-    set_cdma(pci_bar_handle,0x03000000,0x0000000E,0xC2000000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000100,0x0000000E,0xC2010000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000200,0x0000000E,0xC2020000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000300,0x0000000E,0xC2030000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000400,0x0000000E,0xC2040000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000500,0x0000000E,0xC2050000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000600,0x0000000E,0xC2060000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000700,0x0000000E,0xC2070000,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00000800,0x0000000E,0xC2000000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000900,0x0000000E,0xC2010000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000A00,0x0000000E,0xC2020000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000B00,0x0000000E,0xC2030000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000C00,0x0000000E,0xC2040000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000D00,0x0000000E,0xC2050000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000E00,0x0000000E,0xC2060000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000F00,0x0000000E,0xC2070000+0x00000100,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001000,0x0000000E,0xC2000000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001100,0x0000000E,0xC2010000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001200,0x0000000E,0xC2020000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001300,0x0000000E,0xC2030000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001400,0x0000000E,0xC2040000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001500,0x0000000E,0xC2050000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001600,0x0000000E,0xC2060000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001700,0x0000000E,0xC2070000+0x00000200,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001800,0x0000000E,0xC2000000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001900,0x0000000E,0xC2010000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001A00,0x0000000E,0xC2020000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001B00,0x0000000E,0xC2030000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001C00,0x0000000E,0xC2040000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001D00,0x0000000E,0xC2050000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001E00,0x0000000E,0xC2060000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001F00,0x0000000E,0xC2070000+0x00000300,0x00000000,0x00000100);
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE03000000, out_temp_full, 2048);
-    for(loop_var = 0; loop_var < 2048; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 3_2 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //conv 3-2
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0); 
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 640);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 640; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 3_1 out load time = " << diff << "  us" << endl;
-    outdata << endl;    
-    outdata.close();*/
-    //pool 3_2
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_3, 9); 
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_2 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 160);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*16], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+16*4, &out_temp_full[8*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+16*4, &out_temp_full[9*16], 16);*/
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000200,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x00000600,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000A00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000C00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x00000E00,0x0000000E,0x00000200);*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[0], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[32], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[48], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[64], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[80], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[96], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[112], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64, &out_temp_full[128], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64, &out_temp_full[144], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+64, &out_temp_full[160], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+64, &out_temp_full[176], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+64, &out_temp_full[192], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+64, &out_temp_full[208], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+64, &out_temp_full[224], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+64, &out_temp_full[240], 16);*/
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000440,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000480,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x000004C0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000500,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000540,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000580,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x000005C0,0x0000000E,0x00000040);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000040,0x00000000,0x02000000+0x00000600,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000040,0x00000000,0x02000000+0x00000640,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000040,0x00000000,0x02000000+0x00000680,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000040,0x00000000,0x02000000+0x000006C0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000040,0x00000000,0x02000000+0x00000700,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000040,0x00000000,0x02000000+0x00000740,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000040,0x00000000,0x02000000+0x00000780,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000040,0x00000000,0x02000000+0x000007C0,0x0000000E,0x00000040);
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    //Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 160);
-    for(loop_var = 0; loop_var < 256; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    //    out_temp_2[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_2 out load time = " << diff << "  us" << endl;
-
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_3, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_3_weight2D, 8000);
-    for(int i = 0; i < 16; i++){
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[7200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[7200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[7200+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[6400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[6400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[6400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[6400+100*i], 100);
-            Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[6400+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, &conv_3_bias2D[32], 16);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_3, 2048);
-    //out
-    set_cdma(pci_bar_handle,0x03000000,0x0000000E,0xC2000000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000100,0x0000000E,0xC2010000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000200,0x0000000E,0xC2020000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000300,0x0000000E,0xC2030000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000400,0x0000000E,0xC2040000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000500,0x0000000E,0xC2050000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000600,0x0000000E,0xC2060000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000700,0x0000000E,0xC2070000,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00000800,0x0000000E,0xC2000000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000900,0x0000000E,0xC2010000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000A00,0x0000000E,0xC2020000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000B00,0x0000000E,0xC2030000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000C00,0x0000000E,0xC2040000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000D00,0x0000000E,0xC2050000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000E00,0x0000000E,0xC2060000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000F00,0x0000000E,0xC2070000+0x00000100,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001000,0x0000000E,0xC2000000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001100,0x0000000E,0xC2010000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001200,0x0000000E,0xC2020000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001300,0x0000000E,0xC2030000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001400,0x0000000E,0xC2040000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001500,0x0000000E,0xC2050000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001600,0x0000000E,0xC2060000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001700,0x0000000E,0xC2070000+0x00000200,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001800,0x0000000E,0xC2000000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001900,0x0000000E,0xC2010000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001A00,0x0000000E,0xC2020000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001B00,0x0000000E,0xC2030000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001C00,0x0000000E,0xC2040000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001D00,0x0000000E,0xC2050000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001E00,0x0000000E,0xC2060000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001F00,0x0000000E,0xC2070000+0x00000300,0x00000000,0x00000100);
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE03000000, out_temp_full, 2048);
-    for(loop_var = 0; loop_var < 2048; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 3_3 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //conv 3-3
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0); 
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 640);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 640; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 3_1 out load time = " << diff << "  us" << endl;
-    outdata << endl;    
-    outdata.close();*/
-    //pool 3_3
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_3, 9); 
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_3 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 160);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*16], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+16*4, &out_temp_full[8*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+16*4, &out_temp_full[9*16], 16);*/
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000200,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x00000600,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000A00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000C00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x00000E00,0x0000000E,0x00000200);*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[0], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[32], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[48], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[64], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[80], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[96], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[112], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64, &out_temp_full[128], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64, &out_temp_full[144], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+64, &out_temp_full[160], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+64, &out_temp_full[176], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+64, &out_temp_full[192], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+64, &out_temp_full[208], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+64, &out_temp_full[224], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+64, &out_temp_full[240], 16);*/
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000840,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000880,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x000008C0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000900,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000940,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000980,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x000009C0,0x0000000E,0x00000040);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000040,0x00000000,0x02000000+0x00000A00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000040,0x00000000,0x02000000+0x00000A40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000040,0x00000000,0x02000000+0x00000A80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000040,0x00000000,0x02000000+0x00000AC0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000040,0x00000000,0x02000000+0x00000B00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000040,0x00000000,0x02000000+0x00000B40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000040,0x00000000,0x02000000+0x00000B80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000040,0x00000000,0x02000000+0x00000BC0,0x0000000E,0x00000040);
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    //Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 160);
-    for(loop_var = 0; loop_var < 256; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    //    out_temp_2[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_3 out load time = " << diff << "  us" << endl;
-
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_3, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_3_weight2D, 8000);
-    for(int i = 0; i < 16; i++){
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+3200*i, &conv_weight_mem_port_1[8800+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+3200*i, &conv_weight_mem_port_2[8800+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+3200*i, &conv_weight_mem_port_3[8800+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+3200*i, &conv_weight_mem_port_4[8000+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+3200*i, &conv_weight_mem_port_5[8000+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+3200*i, &conv_weight_mem_port_6[8000+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+3200*i, &conv_weight_mem_port_7[8000+100*i], 100);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+3200*i, &conv_weight_mem_port_8[8000+100*i], 100);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, &conv_3_bias2D[48], 16);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_3, 2048);
-
-    //out
-    set_cdma(pci_bar_handle,0x03000000,0x0000000E,0xC2000000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000100,0x0000000E,0xC2010000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000200,0x0000000E,0xC2020000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000300,0x0000000E,0xC2030000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000400,0x0000000E,0xC2040000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000500,0x0000000E,0xC2050000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000600,0x0000000E,0xC2060000,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000700,0x0000000E,0xC2070000,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00000800,0x0000000E,0xC2000000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000900,0x0000000E,0xC2010000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000A00,0x0000000E,0xC2020000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000B00,0x0000000E,0xC2030000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000C00,0x0000000E,0xC2040000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000D00,0x0000000E,0xC2050000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000E00,0x0000000E,0xC2060000+0x00000100,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00000F00,0x0000000E,0xC2070000+0x00000100,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001000,0x0000000E,0xC2000000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001100,0x0000000E,0xC2010000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001200,0x0000000E,0xC2020000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001300,0x0000000E,0xC2030000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001400,0x0000000E,0xC2040000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001500,0x0000000E,0xC2050000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001600,0x0000000E,0xC2060000+0x00000200,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001700,0x0000000E,0xC2070000+0x00000200,0x00000000,0x00000100);
-
-    set_cdma(pci_bar_handle,0x03000000+0x00001800,0x0000000E,0xC2000000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001900,0x0000000E,0xC2010000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001A00,0x0000000E,0xC2020000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001B00,0x0000000E,0xC2030000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001C00,0x0000000E,0xC2040000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001D00,0x0000000E,0xC2050000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001E00,0x0000000E,0xC2060000+0x00000300,0x00000000,0x00000100);
-    set_cdma(pci_bar_handle,0x03000000+0x00001F00,0x0000000E,0xC2070000+0x00000300,0x00000000,0x00000100);
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE03000000, out_temp_full, 2048);
-    for(loop_var = 0; loop_var < 2048; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer 3_4 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //conv 3-4
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-    //gettimeofday(&start,0); 
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_full, 640);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 640; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-        out_temp_1[loop_var]=out_temp_full[loop_var];
-    }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer 3_1 out load time = " << diff << "  us" << endl;
-    outdata << endl;    
-    outdata.close();*/
-    //pool 3_4
-    gettimeofday(&start,0); 
-    Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_3, 9); 
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_4 data load time = " << diff << "  us" << endl;
-    //----------------------inference net ip status check -----------------------//    
-    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-    gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer processing time = " << diff << "  us" << endl;
-    gettimeofday(&start,0); 
-    //Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_full, 160);
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_full, 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[2*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[3*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[4*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[5*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[6*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[7*16], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+16*4, &out_temp_full[8*16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+16*4, &out_temp_full[9*16], 16);*/
-    /*set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000200,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000400,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x00000600,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000800,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000A00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000C00,0x0000000E,0x00000200);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x00000E00,0x0000000E,0x00000200);*/
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, &out_temp_full[0], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1, &out_temp_full[16], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2, &out_temp_full[32], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3, &out_temp_full[48], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4, &out_temp_full[64], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, &out_temp_full[80], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6, &out_temp_full[96], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7, &out_temp_full[112], 16);
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_0+64, &out_temp_full[128], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_1+64, &out_temp_full[144], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_2+64, &out_temp_full[160], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_3+64, &out_temp_full[176], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_4+64, &out_temp_full[192], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5+64, &out_temp_full[208], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_6+64, &out_temp_full[224], 16);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_7+64, &out_temp_full[240], 16);*/
-    set_cdma(pci_bar_handle,0xC2000000,0x00000000,0x02000000+0x00000C00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000,0x00000000,0x02000000+0x00000C40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000,0x00000000,0x02000000+0x00000C80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000,0x00000000,0x02000000+0x00000CC0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000,0x00000000,0x02000000+0x00000D00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000,0x00000000,0x02000000+0x00000D40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000,0x00000000,0x02000000+0x00000D80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000,0x00000000,0x02000000+0x00000DC0,0x0000000E,0x00000040);
-
-    set_cdma(pci_bar_handle,0xC2000000+0x00000040,0x00000000,0x02000000+0x00000E00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2010000+0x00000040,0x00000000,0x02000000+0x00000E40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2020000+0x00000040,0x00000000,0x02000000+0x00000E80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2030000+0x00000040,0x00000000,0x02000000+0x00000EC0,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2040000+0x00000040,0x00000000,0x02000000+0x00000F00,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2050000+0x00000040,0x00000000,0x02000000+0x00000F40,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2060000+0x00000040,0x00000000,0x02000000+0x00000F80,0x0000000E,0x00000040);
-    set_cdma(pci_bar_handle,0xC2070000+0x00000040,0x00000000,0x02000000+0x00000FC0,0x0000000E,0x00000040);
-    /*outdata.open("./netOutput/pool_temp_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    //Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 160);
-    for(loop_var = 0; loop_var < 256; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    //    out_temp_2[loop_var]=out_temp_full[loop_var];
-    }
-    outdata << endl;    
-    outdata.close();*/
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Pooling layer 3_4 out load time = " << diff << "  us" << endl;
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 1024);
-    for(loop_var = 0; loop_var < 1024; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
+    cout << "Pooling layer 3_1 processing time = " << diff << "  us" << endl;*/
 
     //----------------------fc layer -----------------------//   
     gettimeofday(&start,0); 
     Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
     Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_4, 16); 
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, fc_1_weight2D, 8192);
-    /*set_cdma(pci_bar_handle,0x01000000+0x0004D580,0x0000000E,0xC4000000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00001400,0x0000000E,0xC4010000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00002800,0x0000000E,0xC4020000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00003C00,0x0000000E,0xC4030000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00005000,0x0000000E,0xC4040000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00006400,0x0000000E,0xC4050000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00007800,0x0000000E,0xC4060000,0x00000000,0x00001400);
-    set_cdma(pci_bar_handle,0x01000000+0x0004D580+0x00008C00,0x0000000E,0xC4070000,0x00000000,0x00001400);*/
-    for(int i = 0; i < 10; i++){
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0+4096*i, &conv_weight_mem_port_1[10400+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1+4096*i, &conv_weight_mem_port_2[10400+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2+4096*i, &conv_weight_mem_port_3[10400+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3+4096*i, &conv_weight_mem_port_4[9600+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4+4096*i, &conv_weight_mem_port_5[9600+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5+4096*i, &conv_weight_mem_port_6[9600+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6+4096*i, &conv_weight_mem_port_7[9600+128*i], 128);
-        Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7+4096*i, &conv_weight_mem_port_8[9600+128*i], 128);
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, fc_1_bias2D, 10);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 1024);
-    //out
-    set_cdma(pci_bar_handle,0x02000000,0x0000000E,0xC2000000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000040,0x0000000E,0xC2010000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000080,0x0000000E,0xC2020000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000000C0,0x0000000E,0xC2030000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000100,0x0000000E,0xC2040000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000140,0x0000000E,0xC2050000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000180,0x0000000E,0xC2060000,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000001C0,0x0000000E,0xC2070000,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000200,0x0000000E,0xC2000000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000240,0x0000000E,0xC2010000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000280,0x0000000E,0xC2020000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000002C0,0x0000000E,0xC2030000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000300,0x0000000E,0xC2040000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000340,0x0000000E,0xC2050000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000380,0x0000000E,0xC2060000+0x00000040,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000003C0,0x0000000E,0xC2070000+0x00000040,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000400,0x0000000E,0xC2000000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000440,0x0000000E,0xC2010000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000480,0x0000000E,0xC2020000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000004C0,0x0000000E,0xC2030000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000500,0x0000000E,0xC2040000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000540,0x0000000E,0xC2050000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000580,0x0000000E,0xC2060000+0x00000080,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000005C0,0x0000000E,0xC2070000+0x00000080,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000600,0x0000000E,0xC2000000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000640,0x0000000E,0xC2010000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000680,0x0000000E,0xC2020000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000006C0,0x0000000E,0xC2030000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000700,0x0000000E,0xC2040000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000740,0x0000000E,0xC2050000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000780,0x0000000E,0xC2060000+0x000000C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000007C0,0x0000000E,0xC2070000+0x000000C0,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000800,0x0000000E,0xC2000000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000840,0x0000000E,0xC2010000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000880,0x0000000E,0xC2020000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000008C0,0x0000000E,0xC2030000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000900,0x0000000E,0xC2040000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000940,0x0000000E,0xC2050000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000980,0x0000000E,0xC2060000+0x00000100,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x000009C0,0x0000000E,0xC2070000+0x00000100,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000A00,0x0000000E,0xC2000000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000A40,0x0000000E,0xC2010000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000A80,0x0000000E,0xC2020000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000AC0,0x0000000E,0xC2030000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000B00,0x0000000E,0xC2040000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000B40,0x0000000E,0xC2050000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000B80,0x0000000E,0xC2060000+0x00000140,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000BC0,0x0000000E,0xC2070000+0x00000140,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000C00,0x0000000E,0xC2000000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000C40,0x0000000E,0xC2010000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000C80,0x0000000E,0xC2020000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000CC0,0x0000000E,0xC2030000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000D00,0x0000000E,0xC2040000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000D40,0x0000000E,0xC2050000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000D80,0x0000000E,0xC2060000+0x00000180,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000DC0,0x0000000E,0xC2070000+0x00000180,0x00000000,0x00000040);
-
-    set_cdma(pci_bar_handle,0x02000000+0x00000E00,0x0000000E,0xC2000000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000E40,0x0000000E,0xC2010000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000E80,0x0000000E,0xC2020000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000EC0,0x0000000E,0xC2030000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000F00,0x0000000E,0xC2040000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000F40,0x0000000E,0xC2050000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000F80,0x0000000E,0xC2060000+0x000001C0,0x00000000,0x00000040);
-    set_cdma(pci_bar_handle,0x02000000+0x00000FC0,0x0000000E,0xC2070000+0x000001C0,0x00000000,0x00000040);
-    /*outdata.open("./netOutput/bias.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    Read_Bram(pci_bar_handle_4, 0xE02000000, out_temp_full, 1024);
-    for(loop_var = 0; loop_var < 1024; loop_var++){
-        outdata << out_temp_full[loop_var] << "  ";
-    }
-    outdata << endl;    
-    outdata.close();*/
-    
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
     cout << "fc layer 1_1 data load time = " << diff << "  us" << endl;
@@ -2151,7 +959,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
+    cout << "fc layer 1_1 processing time = " << diff << "  us" << endl;
     //cout << "IP is done at " << count << " attempts" << endl; 
     gettimeofday(&start,0); 
     //Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_temp_full, 8);
