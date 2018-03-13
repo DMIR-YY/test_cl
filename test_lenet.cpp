@@ -89,7 +89,8 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     int loop_var_2;
 
     data_type in_data[32*32];
-    data_type in_data_1[32*32];
+    data_type in_data_tmp[128*32];
+    data_type in_data_1[128*32];
     data_type in_data_2[32*32];
     data_type in_data_part1_3D[3][20][20];
     data_type in_data_part2_3D[3][20][20];
@@ -101,14 +102,30 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     data_type in_data_part4[3*20*20];
     data_type  out_data[28*28];
     data_type  out_temp_1[4704];
-    data_type  out_temp_1_1[4704];
-    data_type  out_temp_1_2[4704];
-    data_type  out_temp_1_3[4704];
-    data_type  out_temp_1_4[4704];
-    data_type  out_temp_1_5[4704];
-    data_type  out_temp_1_6[4704];
-    data_type  out_temp_1_7[4704];
     data_type  out_temp_2[4704];
+    data_type  out_temp_3[4704];
+    data_type  out_temp_4[4704];
+    data_type  out_temp_5[4704];
+    data_type  out_temp_6[4704];
+    data_type  out_temp_7[4704];
+    data_type  out_temp_8[4704];
+    data_type  out_temp_9[4704];
+    data_type  out_temp_10[4704];
+    data_type  out_temp_11[4704];
+    data_type  out_temp_12[4704];
+    data_type  out_temp_13[4704];
+    data_type  out_temp_14[4704];
+    data_type  out_temp_15[4704];
+    data_type  out_temp_16[4704];
+    data_type  out_temp_tmp_0[128*32];
+    data_type  out_temp_tmp_1[128*32];
+    data_type  out_temp_tmp_2[128*32];
+    data_type  out_temp_tmp_3[128*32];
+    data_type  out_temp_tmp_4[128*32];
+    data_type  out_temp_tmp_5[128*32];
+    data_type  out_temp_tmp_6[128*32];
+    data_type  out_temp_tmp_7[128*32];
+    data_type  out_temp_tmp_8[128*32];
     data_type  fc_3_out[10];
     data_type out_res[6*28*28];
     data_type_w conv_weight[6*5*5+2400+4000];
@@ -133,14 +150,22 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     
     int ctrl_param_1[2] = {1, 0};
     int ctrl_param_2[2] = {0, 1};
-    int acc_param_conv_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
+
+    int conv_param_1[16] = {1, 5, 6, 28, 28, 28, 28, 1, 2, 1, 0, 0, 0, 0, 1, 1};
+    int pool_param_1[16] = {28, 28, 6, 2, 14, 14, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+    int conv_param_2[16] = {6, 5, 16, 14, 14, 10, 10, 1, 0, 1, 0, 0, 0, 0, 1, 1};
+    int pool_param_2[16] = {10, 10, 16, 2, 5, 5, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+    int conv_param_3[16] = {16, 5, 10, 5, 5, 1, 1, 5, 0, 1, 0, 0, 0, 0, 1, 1};
+    int pool_param_3[16] = {10, 10, 10, 2, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+
+    int acc_param_conv_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 0, 0, 1/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
     int acc_param_test[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int acc_param_conv_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 6/*N*/, 1, 5, 0, 0, 0, 0, 1, 0};
-    int acc_param_conv_3[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 16/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
+    int acc_param_conv_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 0, 0, 6/*N*/, 1, 0, 5, 0, 0, 0, 1, 0};
+    int acc_param_conv_3[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 0, 0, 16/*N*/, 1, 0, 10, 0, 0, 0, 1, 0};
                              //C_in,R_in,N,K,C_out,R_out,stride,pad,act
-    int acc_param_pool_1[9] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 28/*in_size*/, 28/*in_size*/, 0/*P*/, 16};
-    int acc_param_pool_2[9] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in_size*/, 10/*in_size*/, 0/*P*/, 16};
-    int acc_param_pool_3[9] = {0/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 0/*K*/, 0/*in_size*/, 0/*in_size*/, 0/*P*/, 0};
+    int acc_param_pool_1[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 28/*in_size*/, 28/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
+    int acc_param_pool_2[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in_size*/, 10/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
+    int acc_param_pool_3[16] = {0/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 0/*K*/, 1/*in_size*/, 1/*in_size*/, 0/*P*/, 0, 0, 0, 0, 0, 0, 0, 0};
 
     int w;
     int h;
@@ -162,6 +187,9 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     std::ofstream test_output;
     float in_data_3D_padding[3][32][32] = { 0 };
     int in_data_size=0;
+    int w_r_offset = 0;
+    int w_c_offset = 0;
+    std::ofstream w_buf_t;
 
     //int i,j,k;
     int count = 0;
@@ -169,6 +197,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     cout << "test point 0" << endl;
     //time mreasurement variable define
     struct timeval start,end;
+    struct timeval start_net,end_net;
     unsigned long diff;
     XInference_net InstancePtr;
     InstancePtr.ctrl_bus_baseaddress = XINFERENCE_IP_CRTL_BUS_ADDR_1;
@@ -233,7 +262,13 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
             }
         }
     }
-    indata.open("./netOutput/in_data.txt", ios::app);
+    
+    for (loop_var = 0; loop_var < 32; loop_var++) {
+        for (loop_var_1 = 0; loop_var_1 < 32; loop_var_1++) {
+            in_data_tmp[loop_var*128+loop_var_1] = in_data[loop_var*32+loop_var_1];
+        }
+    }
+    /*indata.open("./netOutput/in_data.txt", ios::app);
     for (loop_var = 0; loop_var < 1; loop_var++) {
         indata <<"indata:"<< endl;
         for (loop_var_1 = 0; loop_var_1 < 32; loop_var_1++) {
@@ -246,7 +281,7 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
     }
     indata << endl;
     indata.close();
-    cout << endl;
+    cout << endl;*/
 //----------------------input weight data initialization ------------------//
     // Prepare weights and bias for conv layer 1
     memset(conv_1_weight2D, 0, 150 * sizeof(float));
@@ -369,265 +404,245 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         }
     }
 
+//---------------------conv weight bram ------------------------------------//
+    //conv_1_w_load
+    w_buf_t_load(conv_weight_tmp, conv_1_weight2D, conv_param_1[10], conv_param_1[1], conv_param_1[0], conv_param_1[2], w_r_offset, w_c_offset);
+    //conv_2_w_load
+    w_c_offset = 5;
+    acc_param_conv_2[10] = w_c_offset;
+    w_buf_t_load(conv_weight_tmp, conv_2_weight2D, conv_param_2[10], conv_param_2[1], conv_param_2[0], conv_param_2[2], w_r_offset, w_c_offset);
+    //fc_w_load
+    w_c_offset = 10;
+    acc_param_conv_3[10] = w_c_offset;
+    w_buf_t_load(conv_weight_tmp, fc_1_weight2D, conv_param_3[10], conv_param_3[1], conv_param_3[0], conv_param_3[2], w_r_offset, w_c_offset);
+    w_buf_t.open("netOutput/weight.txt", ios::app);
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 32; j++) {
+        w_buf_t <<"w_buf_data: "<<i<<"_"<<j<< endl;
+        for(int k = 0; k < 32; k++){
+          for(int l = 0; l < 20; l++){
+            w_buf_t << conv_weight_tmp[i][j][k*32+l] << " ";
+          }
+          w_buf_t << endl;
+        }
+        w_buf_t << endl;
+      }
+      w_buf_t << endl;
+    }
+    w_buf_t.close();
+
     //write data to DDR_SH_ADDR
-    Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR, conv_weight, 6*5*5+2400+4000);
+    //weight
+    for(loop_var = 0; loop_var < 8; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 32; loop_var_1++){
+            Fill_Bram(pci_bar_handle_4, 0xE01000000+0x00100000*loop_var+0x00001000*loop_var_1, conv_weight_tmp[loop_var][loop_var_1], 32*5);
+        }  
+    }
+    //in_data
+    Fill_Bram(pci_bar_handle_4, DDR_A_ADDR_1, in_data_tmp, 128*32);
+    //Fill_Bram(pci_bar_handle_4, DDR_SH_ADDR, conv_weight, 6*5*5+2400+4000);
     Fill_Bram(pci_bar_handle_4, DDR_B_ADDR, conv_bias, 6+16+10);
-    Fill_Bram(pci_bar_handle_4, DDR_A_ADDR, in_data, 28*28);
+    //Fill_Bram(pci_bar_handle_4, DDR_A_ADDR, in_data, 32*32);
     
     printf("Finished writing to SH_DDR data\n");
-    //cout<<"Finished loading fc weight into memory! Total: " <<conv_weight_num  << "... ... ..."<<endl;
-    //cout<<"Finished loading fc bias into memory! Total: " <<conv_bias_num  << "... ... ..."<<endl;
-
-//---------------------conv parameter bram transmission---------------------// 
-
-    /*Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16); 
-    Read_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_test, 16);
-    cout << "Finished filling conv acc parameter into param bram!" << endl;
-    for (int i = 0; i< 16; i++) {
-        cout << acc_param_test[i] << "  ";
-    } cout << endl;*/
-
-//---------------------conv weight bram ------------------------------------//
-
     //nn_in_number_conv[in_number_conv]*nn_out_number_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]*nn_channel_size_conv[in_number_conv]
-    //Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS, conv_weight, 6*5*5+2400+4000);
-    gettimeofday(&start,0);
-    //weight
-    /*Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, conv_1_weight2D, 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_1, &conv_1_weight2D[25], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_2, &conv_1_weight2D[50], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_3, &conv_1_weight2D[75], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_4, &conv_1_weight2D[100], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_5, &conv_1_weight2D[125], 25);*/
-    
 //----------------------conv bias bram -------------------------------------//
     //nn_out_number_conv[in_number_conv]
     //Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 6+16+10);
 
 //----------------------input data buffer load------------------------------//
+    gettimeofday(&start_net,0);
+    gettimeofday(&start,0);
     //weight
-    // Load conv layer 1 weight
-    for (int m = 0; m < 6; m++){
-        for (int n =0; n < 1; n++){
-            for (int i =0; i<5; i++){
-                for (int j = 0; j < 5; j++) {
-                    conv_weight_tmp[n][m][i*32 + j] = conv_1_weight2D[25*m + i*5 + j];
-                }
-            }
-        }
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, conv_weight_tmp[0][0], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_1, conv_weight_tmp[0][1], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_2, conv_weight_tmp[0][2], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_3, conv_weight_tmp[0][3], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_4, conv_weight_tmp[0][4], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_5, conv_weight_tmp[0][5], 32*5);
-
-    /*Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, conv_1_weight2D, 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_1, &conv_1_weight2D[25], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_2, &conv_1_weight2D[50], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_3, &conv_1_weight2D[75], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_4, &conv_1_weight2D[100], 25);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_5, &conv_1_weight2D[125], 25);*/
-    /*Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_1, out_temp_2, 256);
-    outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 16; loop_var++){
+    //load all weight
+    for(loop_var = 0; loop_var < 8; loop_var++){
         for(loop_var_1 = 0; loop_var_1 < 16; loop_var_1++){
-            outdata << out_temp_2[loop_var*16+loop_var_1] << "  ";
+            set_cdma(pci_bar_handle,0x01000000+loop_var*0x00100000+loop_var_1*0x00001000,0x0000000E,0x02000000+loop_var*0x00020000+loop_var_1*0x00001000,0x00000000,0x00000280);
+        }  
+    }
+    //load conv1 weight
+    /*for(loop_var = 0; loop_var < 1; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 6; loop_var_1++){
+            set_cdma(pci_bar_handle,0x01000000+loop_var*0x00100000+loop_var_1*0x00001000,0x0000000E,0x02000000+loop_var*0x00020000+loop_var_1*0x00001000,0x00000000,0x00000280);
+        }  
+    }
+
+    /*Read_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6_0, out_temp_1, 32*5);
+    outdata.open("./netOutput/out_temp_data.txt", ios::app);
+    outdata <<"conv_weight:"<< endl;
+    for(loop_var = 0; loop_var < 5; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 32; loop_var_1++){
+            outdata << out_temp_1[loop_var*32+loop_var_1] << "  ";
         }
         outdata << endl;   
     }
     outdata << endl;    
     outdata.close();*/
     //bias
-    Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 6+16+10);
+    //Fill_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias, 6+16+10);
+    /*Read_Bram(pci_bar_handle_4, CONV_B_BRAM_PCIS, conv_bias_1, 6+16+10);
+    outdata.open("./netOutput/bias.txt", ios::app);
+    outdata <<"conv_bias:"<< endl;
+    for(loop_var = 0; loop_var < 32; loop_var++){
+        outdata << conv_bias_1[loop_var] << "  ";  
+    }
+    outdata << endl;    
+    outdata.close();*/
     //input
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data, 32*32);
-    Fill_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data, 32*32);
-    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00000C40);
+    set_cdma(pci_bar_handle,0x02000000,0x0000000C,0x04000000,0x00000000,0x00004000);
+    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data_tmp, 128*32);
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, in_data_1, 128*32);
+    outdata.open("./netOutput/in_data.txt", ios::app);
+    outdata <<"in_data:"<< endl;
+    for(loop_var = 0; loop_var < 32; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 128; loop_var_1++){
+            outdata << in_data_1[loop_var*128+loop_var_1] << "  ";
+        }
+        outdata << endl;   
+    }
+    outdata << endl;    
+    outdata.close();*/
     
 //----------------------inference net ip status check -----------------------//    
-    //1
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_1, 9); 
+    //1_1
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_1, 16);
+    Fill_param(pci_bar_handle_4, POOL_CORE_PARAM, acc_param_pool_1, 16); 
+    /*Read_param(pci_bar_handle_4, POOL_CORE_PARAM, acc_param_test, 16);
+    outdata.open("./netOutput/in_data.txt", ios::app);
+    outdata <<"param:"<< endl;
+    for(loop_var = 0; loop_var < 16; loop_var++){
+        outdata << acc_param_test[loop_var] << "  ";  
+    }
+    outdata << endl;    
+    outdata.close();*/
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
     cout << "conv1_1 data loading time = " << diff << "  us" << endl;
 
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
-
+    //load conv2 weight
+    /*for(loop_var_1 = 0; loop_var_1 < 10; loop_var_1++){
+        set_cdma(pci_bar_handle,0x01006000+loop_var_1*0x00001000,0x0000000E,0x02006000+loop_var_1*0x00001000,0x00000000,0x00000280);
+    }
+    for(loop_var = 0; loop_var < 5; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 16; loop_var_1++){
+            set_cdma(pci_bar_handle,0x01100000+loop_var*0x00100000+loop_var_1*0x00001000,0x0000000E,0x02020000+loop_var*0x00020000+loop_var_1*0x00001000,0x00000000,0x00000280);
+        }  
+    }*/
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //2
-    acc_param_conv_1[6]=16;
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16);
+    cout << "Convolution layer_1_1 processing time = " << diff << "  us" << endl;
+    
+    //1_2
     gettimeofday(&start,0);
+    acc_param_conv_1[6]=16;
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_1, 16);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
-
+    //load fc weight
+    /*for(loop_var = 0; loop_var < 2; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 16; loop_var_1++){
+            set_cdma(pci_bar_handle,0x01600000+loop_var*0x00100000+loop_var_1*0x00001000,0x0000000E,0x020C0000+loop_var*0x00020000+loop_var_1*0x00001000,0x00000000,0x00000280);
+        }  
+    }*/
+    //load conv1_1 out_data
+    for(loop_var = 0; loop_var < 6; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 8; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040000+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000000+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000020);
+        }
+    }
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //3
+    cout << "Convolution layer_1_2 processing time = " << diff << "  us" << endl;
+    
+    //1_3
+    gettimeofday(&start,0);
     acc_param_conv_1[5]=16;
     acc_param_conv_1[6]=0;
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16);
-    gettimeofday(&start,0);
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_1, 16);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
-
+    //load conv1_2 out_data
+    for(loop_var = 0; loop_var < 6; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 8; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040020+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000020+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000018);
+        }
+    }
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //4
+    cout << "Convolution layer_1_3 processing time = " << diff << "  us" << endl;
+    
+    //1_4
+    gettimeofday(&start,0);
     acc_param_conv_1[5]=16;
     acc_param_conv_1[6]=16;
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_1, 16); 
-    gettimeofday(&start,0);
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_1, 16); 
     XInference_net_Start(pci_bar_handle, &InstancePtr);
-
+    //load conv1_3 out_data
+    for(loop_var = 0; loop_var < 6; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 6; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040400+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04001000+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000020);
+        }
+    }
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
     gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "Convolution layer processing time = " << diff << "  us" << endl;
+    cout << "Convolution layer_1_4 processing time = " << diff << "  us" << endl;
 
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_2, 256);
+    //----------------------conv_2 layer -----------------------// 
+    //loading data
+    gettimeofday(&start,0);
+    /*for(loop_var = 0; loop_var < 6; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 14; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040000+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000000+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000038);
+        }
+    }*/
+    //load conv1_4 out_data
+    for(loop_var = 0; loop_var < 6; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 6; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040420+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04001020+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000018);
+        }
+    }    
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_7, 128*32);
     outdata.open("./netOutput/out_temp_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 14; loop_var++){
-        for(loop_var_1 = 0; loop_var_1 < 14; loop_var_1++){
-            outdata << out_temp_2[loop_var*14+loop_var_1] << " ";
+    outdata <<"conv_input:"<< endl;
+    for(loop_var = 0; loop_var < 32; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 128; loop_var_1++){
+            outdata << out_temp_7[loop_var*128+loop_var_1] << " ";
         }
         outdata << endl;   
     }
     outdata << endl;    
-    outdata.close();
-//---------------Read convolution results out from output_buffer_1------------//
-//TODO: read the results data out for comparison -- single layer convolution    
-    //cout << "Read out convolutional results" << endl;
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_1, 784);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_5, out_temp_1_1, 784);
-    outdata.open("./netOutput/out_data.txt", ios::app);
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 784; loop_var++){
-        //for(int j = 0;j < acc_param_pool_2[4];j++){
-        //    for(int k = 0;k < acc_param_pool_2[5];k++){
-                outdata << out_temp_1[loop_var] << "  ";
-            //}
-            //outdata << endl;
-        //}
-        //outdata << endl;
-    }
-    outdata << endl;  
-    outdata <<"conv_output:"<< endl;
-    for(loop_var = 0; loop_var < 784; loop_var++){
-        //for(int j = 0;j < acc_param_pool_2[4];j++){
-        //    for(int k = 0;k < acc_param_pool_2[5];k++){
-                outdata << out_temp_1_1[loop_var] << "  ";
-            //}
-            //outdata << endl;
-        //}
-        //outdata << endl;
-    }
-    outdata << endl;   
     outdata.close();*/
-    //gettimeofday(&start,0);
-    //----------------------pool_1 layer -----------------------//  
-    //Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    /*Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_1, 9); 
-    //max_pool_layer_new(28, 28, 6, 2, 14, 14, 2, 0, 1,  out_temp_1,  out_temp_2);
-    //----------------------inference net ip status check -----------------------//    
-    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_2, 16);
+    Fill_param(pci_bar_handle_4, POOL_CORE_PARAM, acc_param_pool_2, 16); 
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "conv2 data loading time = " << diff << "  us" << endl;
 
+    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00004980);
+    //----------------------inference net ip status check -----------------------//    
     gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
 
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
-
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_1, 196);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_0_5, out_temp_1_1, 196);
-    outdata.open("./netOutput/pool_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    for(int i = 0;i < 1;i++){
-        for(int j = 0;j < acc_param_pool_1[4];j++){
-            for(int k = 0;k < acc_param_pool_1[5];k++){
-                outdata << out_temp_1[i*acc_param_pool_1[4]*acc_param_pool_1[5]+j*acc_param_pool_1[5]+k] << "  ";
-            }
-            outdata << endl;
-        }
-        outdata << endl;
-    }
-    outdata <<"pool_output:"<< endl;
-    for(int i = 0;i < 1;i++){
-        for(int j = 0;j < acc_param_pool_1[4];j++){
-            for(int k = 0;k < acc_param_pool_1[5];k++){
-                outdata << out_temp_1_1[i*acc_param_pool_1[4]*acc_param_pool_1[5]+j*acc_param_pool_1[5]+k] << "  ";
-            }
-            outdata << endl;
-        }
-        outdata << endl;
-    }
-    outdata << endl;    
-    outdata.close();*/
-    /*gettimeofday(&end,0);
+    gettimeofday(&end,0);
     diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    cout << "maxpool layer 1 processing time = " << diff << "  us" << endl;*/
+    cout << "Convolution layer2 processing time = " << diff << "  us" << endl;
 
-    //----------------------conv_2 layer -----------------------//  
-    //weight
-    // Load conv layer 2 weight
-    for (int m = 0; m < 16; m++){
-        for (int n =0; n < 6; n++){
-            for (int i =0; i<5; i++){
-                for (int j = 0; j < 5; j++) {
-                    conv_weight_tmp[n][m][5 + i*32 + j] = conv_2_weight2D[150*m + 25*n + i*5 + j];
-                }
-            }
-        }
-    }
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, &conv_weight_tmp[0][0][5], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1_0, &conv_weight_tmp[1][0][5], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2_0, &conv_weight_tmp[2][0][5], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3_0, &conv_weight_tmp[3][0][5], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4_0, &conv_weight_tmp[4][0][5], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5_0, &conv_weight_tmp[5][0][5], 32*5);
-    //Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_1, 16); 
-    //Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_1, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_2, 16);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_2, 9);  
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 4704);
-    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00004980);
-    //----------------------inference net ip status check -----------------------//    
-    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-
-    //gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Convolution layer processing time = " << diff << "  us" << endl;
-    //cout << "IP is done at " << count << " attempts" << endl; 
-
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1, out_temp_1, 4704);
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_1, 4704);
     outdata.open("./netOutput/out_temp_data.txt", ios::app);
     outdata <<"conv_output:"<< endl;
     for(int i = 0;i < 16;i++){
@@ -640,140 +655,119 @@ int peek_poke_example(int slot_id, int pf_id, int bar_id) {
         outdata << endl;
     }
     outdata << endl;    
-    outdata.close();
+    outdata.close();*/
 
-    //gettimeofday(&start,0);
-    //----------------------pool_2 layer -----------------------//  
-    /*Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param_2, 2);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_2, 9); 
-    //max_pool_layer_new(10, 10, 16, 2, 5, 5, 2, 0, 1,  out_temp_1,  out_temp_2);
-    //----------------------inference net ip status check -----------------------//    
-    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-
-    //gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
+    //----------------------fc layer -----------------------//  
+    //fc1_1
+    //loading fc1_1 in_data
+    gettimeofday(&start,0);
+    for(loop_var = 0; loop_var < 8; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 5; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00040000+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000000+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000014);
+        }
     }
-
-    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_1, 4704);
-    outdata.open("./netOutput/pool_out_data.txt", ios::app);
-    outdata <<"pool_output:"<< endl;
-    for(loop_var = 0; loop_var < acc_param_pool_2[2]*acc_param_pool_2[4]*acc_param_pool_2[5]; loop_var++){
-        //for(int j = 0;j < acc_param_pool_2[4];j++){
-        //    for(int k = 0;k < acc_param_pool_2[5];k++){
-                outdata << out_temp_1[loop_var] << "  ";
-            //}
-            //outdata << endl;
-        //}
-        //outdata << endl;
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_3, 16);
+    Fill_param(pci_bar_handle_4, POOL_CORE_PARAM, acc_param_pool_3, 16); 
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "fc_1_1 data loading time = " << diff << "  us" << endl;
+    
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_7, 128*32);
+    outdata.open("./netOutput/out_temp_data.txt", ios::app);
+    outdata <<"conv_input:"<< endl;
+    for(loop_var = 0; loop_var < 32; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 128; loop_var_1++){
+            outdata << out_temp_7[loop_var*128+loop_var_1] << " ";
+        }
+        outdata << endl;   
     }
     outdata << endl;    
     outdata.close();*/
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "maxpool layer 2 processing time = " << diff << "  us" << endl;
-    //----------------------fc layer -----------------------//  
-
-    //Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_2, 16); 
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_0, acc_param_conv_3, 16);
-    Fill_param(pci_bar_handle_4, ACC_PARAMS_1, acc_param_pool_3, 9); 
-    //1 
-    //weight
-    // Load fc layer weight 1
-    for (int m = 0; m < 10; m++){
-        for (int n =0; n < 8; n++){
-            for (int i =0; i<5; i++){
-                for (int j = 0; j < 5; j++) {
-                    conv_weight_tmp[n][m][10 + i*32 + j] = conv_2_weight2D[200*m + 25*n + i*5 + j];
-                }
-            }
-        }
-    } 
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, &conv_weight_tmp[0][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1_0, &conv_weight_tmp[1][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2_0, &conv_weight_tmp[2][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3_0, &conv_weight_tmp[3][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4_0, &conv_weight_tmp[4][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5_0, &conv_weight_tmp[5][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6_0, &conv_weight_tmp[6][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7_0, &conv_weight_tmp[7][0][10], 32*5);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 4704);
     //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00004980);
     //----------------------inference net ip status check -----------------------//    
-    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
+    //ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
+    gettimeofday(&start,0);
+    XInference_net_Start(pci_bar_handle, &InstancePtr);
+    //loading fc1_2 in_data
+    for(loop_var = 0; loop_var < 8; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 5; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00048000+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000100+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000014);
+        }
+    }
+    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
+        count++;
+    }
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Fc layer1_1 processing time = " << diff << "  us" << endl;
 
-    //gettimeofday(&start,0);
+    //fc1_2 
+    //loading data
+    gettimeofday(&start,0);
+    /*for(loop_var = 0; loop_var < 8; loop_var++){
+        for (loop_var_1 = 0; loop_var_1 < 5; loop_var_1++) {
+            set_cdma(pci_bar_handle,0x00048000+loop_var*0x00001000+loop_var_1*0x00000080,0x00000000,0x04000000+loop_var*0x00010000+loop_var_1*0x00000200,0x00000000,0x00000014);
+        }
+    }*/
+    acc_param_conv_3[1] = 8;//n
+    acc_param_conv_3[10] = 15;//w_c_offset
+    acc_param_conv_3[6] = 64;//c_offset
+    Fill_param(pci_bar_handle_4, CONV_CORE_PARAM, acc_param_conv_3, 16);
+    Fill_param(pci_bar_handle_4, POOL_CORE_PARAM, acc_param_pool_3, 16); 
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "fc_1_2 data loading time = " << diff << "  us" << endl;
+
+    /*Read_Bram(pci_bar_handle_4, BUF_OUT_0_0, out_temp_7, 128*5);
+    outdata.open("./netOutput/out_temp_data.txt", ios::app);
+    outdata <<"conv_input:"<< endl;
+    for(loop_var = 0; loop_var < 5; loop_var++){
+        for(loop_var_1 = 0; loop_var_1 < 128; loop_var_1++){
+            outdata << out_temp_7[loop_var*128+loop_var_1] << " ";
+        }
+        outdata << endl;   
+    }
+    outdata << endl;    
+    outdata.close();*/
+    gettimeofday(&start,0);
     XInference_net_Start(pci_bar_handle, &InstancePtr);
 
     while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
         count++;
     }
-    //2 
-    //weight
-    // Load fc layer weight 1
-    for (int m = 0; m < 10; m++){
-        for (int n =0; n < 8; n++){
-            for (int i =0; i<5; i++){
-                for (int j = 0; j < 5; j++) {
-                    conv_weight_tmp[n][m][i*32 + j] = conv_2_weight2D[2000 + 200*m + 25*n + i*5 + j];
-                }
-            }
-        }
-    } 
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_0_0, &conv_weight_tmp[0][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_1_0, &conv_weight_tmp[1][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_2_0, &conv_weight_tmp[2][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_3_0, &conv_weight_tmp[3][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_4_0, &conv_weight_tmp[4][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_5_0, &conv_weight_tmp[5][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_6_0, &conv_weight_tmp[6][0][10], 32*5);
-    Fill_Bram(pci_bar_handle_4, CONV_W_BRAM_PCIS_7_0, &conv_weight_tmp[7][0][10], 32*5);
-    //Fill_Bram(pci_bar_handle_4, BUF_OUT_0, out_temp_2, 4704);
-    //set_cdma(pci_bar_handle,0xE02000000,0x0000000C,0xC4000000,0x00000000,0x00004980);
-    //----------------------inference net ip status check -----------------------//    
-    ip_status = XInference_net_ReadReg(pci_bar_handle, InstancePtr.ctrl_bus_baseaddress, XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL);
-    //cout << "Status feedback from inference ip is : " << ip_status << endl;
-
-    //gettimeofday(&start,0);
-    XInference_net_Start(pci_bar_handle, &InstancePtr);
-
-    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
-        count++;
-    }
-    //gettimeofday(&end,0);
-    //diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
-    //cout << "Fc layer processing time = " << diff << "  us" << endl;
+    gettimeofday(&end,0);
+    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    cout << "Fc layer1_2 processing time = " << diff << "  us" << endl;
     //cout << "IP is done at " << count << " attempts" << endl; 
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_1, 2);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_1, out_temp_1_1, 2);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_2, out_temp_1_2, 1);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_3, out_temp_1_3, 1);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_4, out_temp_1_4, 1);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_5, out_temp_1_5, 1);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_6, out_temp_1_6, 1);
-    Read_Bram(pci_bar_handle_4, BUF_OUT_1_7, out_temp_1_7, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_0, out_temp_1, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_1, out_temp_2, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_2, out_temp_3, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_3, out_temp_4, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_4, out_temp_5, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_5, out_temp_6, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_6, out_temp_7, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_7, out_temp_8, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_8, out_temp_9, 1);
+    Read_Bram(pci_bar_handle_4, BUF_OUT_1_9, out_temp_10, 1);
 
-    for (loop_var = 0; loop_var < 10; loop_var += 8 ) {
-        fc_3_out[loop_var+0]=(float)(out_temp_1[loop_var/8]);
-        fc_3_out[loop_var+1]=(float)(out_temp_1_1[loop_var/8]);
-        fc_3_out[loop_var+2]=(float)(out_temp_1_2[loop_var/8]);
-        fc_3_out[loop_var+3]=(float)(out_temp_1_3[loop_var/8]);
-        fc_3_out[loop_var+4]=(float)(out_temp_1_4[loop_var/8]);
-        fc_3_out[loop_var+5]=(float)(out_temp_1_5[loop_var/8]);
-        fc_3_out[loop_var+6]=(float)(out_temp_1_6[loop_var/8]);
-        fc_3_out[loop_var+7]=(float)(out_temp_1_7[loop_var/8]);
-    }
+    fc_3_out[0]=(float)(out_temp_1[0]);
+    fc_3_out[1]=(float)(out_temp_2[0]);
+    fc_3_out[2]=(float)(out_temp_3[0]);
+    fc_3_out[3]=(float)(out_temp_4[0]);
+    fc_3_out[4]=(float)(out_temp_5[0]);
+    fc_3_out[5]=(float)(out_temp_6[0]);
+    fc_3_out[6]=(float)(out_temp_7[0]);
+    fc_3_out[7]=(float)(out_temp_8[0]);
+    fc_3_out[8]=(float)(out_temp_9[0]);
+    fc_3_out[9]=(float)(out_temp_10[0]);
     for (loop_var = 0; loop_var < 10; loop_var++ ) {
         cout << fc_3_out[loop_var] << "  ";
     }
+    cout << endl;
     softmax(fc_3_out, 10);
     predict(fc_3_out, 10);
-    gettimeofday(&end,0);
-    diff = 1000000*(end.tv_sec-start.tv_sec) + end.tv_usec-start.tv_usec;
+    gettimeofday(&end_net,0);
+    diff = 1000000*(end_net.tv_sec-start_net.tv_sec) + end_net.tv_usec-start_net.tv_usec;
     cout << "Lenet processing time = " << diff << "  us" << endl;
 
 //------------------------------------------------------------------------------------------
