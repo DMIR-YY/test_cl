@@ -64,7 +64,8 @@ static uint16_t pci_device_id = 0xF000; /* PCI Device ID preassigned by Amazon f
 #define HELLO_WORLD_REG_ADDR_BYTES UINT64_C(0x28)
 
  // M_AXI_BAR1 connected to inference control port
-#define XINFERENCE_IP_CRTL_BUS_ADDR UINT64_C(0x010000)
+#define XINFERENCE_IP_CRTL_BUS_ADDR_1 UINT64_C(0x010000)
+#define XINFERENCE_IP_CRTL_BUS_ADDR_2 UINT64_C(0x020000)
 
 #define XINFERENCE_NET_CRTL_BUS_ADDR_AP_CTRL UINT64_C(0x0)
 #define XINFERENCE_NET_CRTL_BUS_ADDR_GIE UINT64_C(0x4)
@@ -286,4 +287,227 @@ const unsigned char * loadfile(const std::string &file, int &size) {
    fs.read(data, sizeof(char) * size);
    fs.close();
    return (unsigned char *)data;
+}
+
+void w_buf_t_load(float buf[][Tm][WBUF_t*WBUF_t], float *layer_weights, int weight_offset, int K, int N, int M, int w_r_offset, int w_c_offset){
+        for (int m = 0; m < M; m += Tm) {
+            for (int n = 0; n < N; n += Tn) {
+                if(w_c_offset + 2*K > WBUF_t){
+                    w_c_offset = 0;
+                    w_r_offset += K;
+                }else{
+                    w_c_offset += K*(n/Tn);
+                    w_r_offset += K*(m/Tm);
+                }
+                for(int k1 = 0; k1 < K; k1++){
+                    for(int k2 = 0; k2 < K; k2++){
+                        for(int j = 0; j < Tn && j < N; j++){
+                            for(int i = 0; i < Tm && i < M; i++){
+                                buf[j][i][WBUF_t*(k1+w_r_offset) + (k2+w_c_offset)] = *(layer_weights + weight_offset + (i+m)*N*K*K + (j+n)*K*K + k1*K + k2);
+                           }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+void acc_call_1(pci_bar_handle_t pci_bar_handle,XInference_net InstancePtr_1,XInference_net InstancePtr_2,
+    int Tm_times,int Tn_times,int Tr_times,int Tc_times,
+    uint32_t bytes_value_in,uint32_t bytes_value_weight,uint32_t bytes_value_out){
+    //3 ports
+    for(int r=0;r<Tr_times;r++){
+        for(int c=0;c<Tc_times;c++){
+            for(int m=0;m<Tm_times;m++){
+                for(int n=0;n<Tn_times;n++){
+                    //load weight_data
+                    for (int loop_var_1 = 0; loop_var_1 < 3; loop_var_1++) {
+                        for (int loop_var_2 = 0; loop_var_2 < 32; loop_var_2++) {
+                            set_cdma(pci_bar_handle,0x01000000+loop_var_1*100000+loop_var_2*1000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0x02000000+loop_var_1*20000+loop_var_2*1000,0x00000000,0x00000800);
+                        }
+                    }
+                    //set_cdma(pci_bar_handle,0x01000000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0x02000000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01100000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4010000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01200000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4020000,0x00000000,bytes_value_weight);
+                    //load input_data
+                    set_cdma(pci_bar_handle,0x02000000,0x0000000C,0x00000000,0x00000000,bytes_value_in);
+                    set_cdma(pci_bar_handle,0x02000000+0x00000640,0x0000000C,0x00010000,0x00000000,bytes_value_in);
+                    set_cdma(pci_bar_handle,0x02000000+0x00000C80,0x0000000C,0x00020000,0x00000000,bytes_value_in);
+                    //start conv acc
+                    XInference_net_Start(pci_bar_handle, &InstancePtr_1);
+                    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr_1)) {
+                        
+                    }
+                }
+                //start pool acc
+                XInference_net_Start(pci_bar_handle, &InstancePtr_2);
+                while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr_2)) {
+                        
+                }
+                //trans output
+                for (int loop_var_1 = 0; loop_var_1 < 32; loop_var_1++) {
+                    set_cdma(pci_bar_handle,0x00040000+loop_var_1*1000,0x00000000,0xD0200000+loop_var_1*4000+bytes_value_out*(Tm_times>1?m:1)*(c+Tc_times*r),0x00000000,bytes_value_out);
+                }
+                /*set_cdma(pci_bar_handle,0xC6000000,0x00000000,0xD0200000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC6040000,0x00000000,0xD0210000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC6080000,0x00000000,0xD0220000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC60C0000,0x00000000,0xD0230000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC6100000,0x00000000,0xD0240000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC6140000,0x00000000,0xD0250000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC6180000,0x00000000,0xD0260000+bytes_value_out*m,0x00000000,bytes_value_out);
+                set_cdma(pci_bar_handle,0xC61C0000,0x00000000,0xD0270000+bytes_value_out*m,0x00000000,bytes_value_out);*/
+            }
+        }
+    }
+}
+
+void acc_call_2(pci_bar_handle_t pci_bar_handle,XInference_net InstancePtr,
+    int Tm_times,int Tn_times,int Tr_times,int Tc_times,
+    uint32_t bytes_value_in_offset,uint32_t bytes_value_in,uint32_t bytes_value_weight,uint32_t bytes_value_out){
+    int flag=0;
+    //8 ports
+    for(int r=0;r<Tr_times;r++){
+        for(int c=0;c<Tc_times;c++){
+            for(int m=0;m<Tm_times;m++){
+                for(int n=0;n<Tn_times;n++){
+                    //load weight_data
+                    for (int loop_var_1 = 0; loop_var_1 < 8; loop_var_1++) {
+                        for (int loop_var_2 = 0; loop_var_2 < 32; loop_var_2++) {
+                            set_cdma(pci_bar_handle,0x01000000+loop_var_1*100000+loop_var_2*1000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0x02000000+loop_var_1*20000+loop_var_2*1000,0x00000000,0x00000800);
+                        }
+                    }
+                    //set_cdma(pci_bar_handle,0x01000000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4000000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01100000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4010000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01200000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4020000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01300000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4030000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01400000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4040000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01500000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4050000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01600000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4060000,0x00000000,bytes_value_weight);
+                    //set_cdma(pci_bar_handle,0x01700000+bytes_value_weight*n*(Tm_times>1?m:1),0x0000000E,0xC4070000,0x00000000,bytes_value_weight);
+                    //load input_data
+                    if(flag==0){
+                        set_cdma(pci_bar_handle,0xD0200000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02000000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0210000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02010000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0220000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02020000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0230000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02030000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0240000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02040000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0250000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02050000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0260000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02060000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0270000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02070000,0x00000000,bytes_value_in);
+                        flag=1;
+                    }else{
+                        set_cdma(pci_bar_handle,0xC2000000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02000000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2100000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02010000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2200000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02020000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2300000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02030000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2400000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02040000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2500000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02050000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2600000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02060000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2700000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02070000,0x00000000,bytes_value_in);
+                        flag=0;
+                    }
+                    //start acc
+                    XInference_net_Start(pci_bar_handle, &InstancePtr);
+                    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
+                        
+                    }
+                }
+                //trans output
+                if(flag==0){
+                    set_cdma(pci_bar_handle,0xC6000000,0x00000000,0xC2000000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6040000,0x00000000,0xC2100000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6080000,0x00000000,0xC2200000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC60C0000,0x00000000,0xC2300000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6100000,0x00000000,0xC2400000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6140000,0x00000000,0xC2500000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6180000,0x00000000,0xC2600000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC61C0000,0x00000000,0xC2700000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    flag=1;
+                }else{
+                    set_cdma(pci_bar_handle,0xC6000000,0x00000000,0xD0200000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6040000,0x00000000,0xD0210000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6080000,0x00000000,0xD0220000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC60C0000,0x00000000,0xD0230000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6100000,0x00000000,0xD0240000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6140000,0x00000000,0xD0250000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6180000,0x00000000,0xD0260000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC61C0000,0x00000000,0xD0270000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    flag=0;
+                }
+            }
+        }
+    }
+}
+
+void acc_call_2_pool(pci_bar_handle_t pci_bar_handle,pci_bar_handle_t pci_bar_handle_4,XInference_net InstancePtr,
+    uint64_t CTRL_PARAMS,uint64_t ACC_PARAMS,int *ctrl_param,int *acc_param_pool,
+    int Tm_times,int Tn_times,int Tr_times,int Tc_times,
+    uint32_t bytes_value_in_offset,uint32_t bytes_value_in,uint32_t bytes_value_weight,uint32_t bytes_value_out){
+    int flag=0;
+    //8 ports
+    for(int r=0;r<Tr_times;r++){
+        for(int c=0;c<Tc_times;c++){
+            for(int m=0;m<Tm_times;m++){
+                for(int n=0;n<Tn_times;n++){
+                    //load input_data
+                    if(flag==0){
+                        set_cdma(pci_bar_handle,0xD0200000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02000000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0210000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02010000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0220000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02020000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0230000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02030000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0240000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02040000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0250000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02050000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0260000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02060000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xD0270000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02070000,0x00000000,bytes_value_in);
+                        flag=1;
+                    }else{
+                        set_cdma(pci_bar_handle,0xC2000000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02000000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2100000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02010000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2200000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02020000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2300000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02030000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2400000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02040000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2500000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02050000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2600000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02060000,0x00000000,bytes_value_in);
+                        set_cdma(pci_bar_handle,0xC2700000+bytes_value_in_offset*c+bytes_value_in_offset*Tc_times*r+bytes_value_in_offset*Tc_times*Tr_times*n,0x0000000C,0x02070000,0x00000000,bytes_value_in);
+                        flag=0;
+                    }
+                    //start conv acc
+                    XInference_net_Start(pci_bar_handle, &InstancePtr);
+                    while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
+                        
+                    }
+                }
+                //load pool params
+                Fill_param(pci_bar_handle_4, CTRL_PARAMS, ctrl_param, 2);
+                Fill_param(pci_bar_handle_4, ACC_PARAMS, acc_param_pool, 9); 
+                //start pool acc
+                XInference_net_Start(pci_bar_handle, &InstancePtr);
+                while (!XInference_net_IsDone(pci_bar_handle, &InstancePtr)) {
+                    
+                }
+                //trans output
+                if(flag==0){
+                    set_cdma(pci_bar_handle,0xC6000000,0x00000000,0xC2000000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6040000,0x00000000,0xC2100000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6080000,0x00000000,0xC2200000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC60C0000,0x00000000,0xC2300000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6100000,0x00000000,0xC2400000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6140000,0x00000000,0xC2500000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6180000,0x00000000,0xC2600000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC61C0000,0x00000000,0xC2700000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    flag=1;
+                }else{
+                    set_cdma(pci_bar_handle,0xC6000000,0x00000000,0xD0200000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6040000,0x00000000,0xD0210000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6080000,0x00000000,0xD0220000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC60C0000,0x00000000,0xD0230000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6100000,0x00000000,0xD0240000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6140000,0x00000000,0xD0250000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC6180000,0x00000000,0xD0260000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    set_cdma(pci_bar_handle,0xC61C0000,0x00000000,0xD0270000+bytes_value_out*m,0x00000000,bytes_value_out);
+                    flag=0;
+                }
+            }
+        }
+    }
 }
